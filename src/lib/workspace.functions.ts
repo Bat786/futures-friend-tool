@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 import { LAYOUT_PRESETS, normalizeLayout, type SavedLayout } from "./workspace-layouts";
 
 const layoutSchema = z.object({
@@ -24,7 +25,7 @@ export const listLayouts = createServerFn({ method: "GET" })
       const rows = LAYOUT_PRESETS.map((p, i) => ({
         user_id: context.userId,
         name: p.name,
-        panels: p.panels as unknown as Record<string, unknown>,
+        panels: p.panels as unknown as Json,
         is_default: i === 0,
       }));
       const seeded = await context.supabase
@@ -68,7 +69,7 @@ export const saveLayout = createServerFn({ method: "POST" })
     const row = {
       user_id: context.userId,
       name: data.name,
-      panels: data.panels as unknown as Record<string, unknown>,
+      panels: data.panels as unknown as Json,
       is_default: data.isDefault,
     };
 
