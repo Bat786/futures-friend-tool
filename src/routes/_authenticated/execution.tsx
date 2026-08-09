@@ -127,7 +127,8 @@ function ExecutionPage() {
       const [barResult] = await Promise.allSettled([fetchBars(symbol, "5m", 100, config)]);
       const bars = barResult.status === "fulfilled" ? barResult.value.bars : [];
       const signal = computeSignal(bars, "5m", risk.data?.weights);
-      const entryPrice = bars.length > 0 ? bars[bars.length - 1].close : null;
+      const lastBar = bars.at(-1);
+      const entryPrice = lastBar ? lastBar.close : null;
 
       const orderRes = await placeOrder(config, {
         accountId: numericAccountId,
@@ -160,10 +161,10 @@ function ExecutionPage() {
           setupTag: setupTag.trim() || null,
           supervised,
           snapshot: {
-            rsi: signal?.rsi ?? null,
-            vwap: signal?.vwap ?? null,
-            macd: signal?.macd ?? null,
-            momentum: signal?.momentum ?? null,
+            rsi: readingValue(signal, "rsi"),
+            vwap: readingValue(signal, "vwap"),
+            macd: readingValue(signal, "macd"),
+            momentum: readingValue(signal, "momentum"),
             score: signal?.score ?? null,
           },
         },
