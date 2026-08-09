@@ -121,11 +121,24 @@ function ExecutionPage() {
 
   return (
     <AppShell>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Execution</h1>
-        <p className="text-sm text-muted-foreground">
-          Manual, supervised order entry. Nothing is sent without a click that passes your risk gate.
-        </p>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="eyebrow">Supervised order entry</p>
+          <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+            Nothing is sent without a click that passes your risk gate.
+          </p>
+        </div>
+        <Badge
+          variant="outline"
+          className={cn(
+            "font-mono text-[10px] tracking-[0.16em]",
+            supervised
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-warning/40 bg-warning/10 text-warning",
+          )}
+        >
+          {supervised ? "SUPERVISED" : "UNATTENDED"}
+        </Badge>
       </div>
 
       {status.data && !status.data.configured && (
@@ -136,9 +149,9 @@ function ExecutionPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <Card>
+        <Card className="panel">
           <CardHeader>
-            <CardTitle className="text-base">Order ticket</CardTitle>
+            <CardTitle className="font-display text-base">Order ticket</CardTitle>
             <CardDescription>Brackets use your default stop/target ticks from settings.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -274,9 +287,9 @@ function ExecutionPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card>
+          <Card className="panel">
             <CardHeader>
-              <CardTitle className="text-base">Today's risk state</CardTitle>
+              <CardTitle className="font-display text-base">Today's risk state</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
               <Stat
@@ -290,10 +303,10 @@ function ExecutionPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="panel border-destructive/25">
             <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">Open positions</CardTitle>
-              <Badge variant="outline" className="font-mono text-xs">
+              <CardTitle className="font-display text-base">Open positions</CardTitle>
+              <Badge variant="outline" className="tabular text-xs">
                 {positions.data?.positions.length ?? 0}
               </Badge>
             </CardHeader>
@@ -302,14 +315,21 @@ function ExecutionPage() {
                 <p className="text-sm text-muted-foreground">No open positions on this account.</p>
               ) : (
                 (positions.data?.positions ?? []).map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm">
-                    <span className="font-mono">{p.contractId}</span>
-                    <span className="text-muted-foreground">
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-sm"
+                  >
+                    <span className="tabular">{p.contractId}</span>
+                    <span className="tabular text-muted-foreground">
                       {p.size} @ {p.averagePrice}
                     </span>
                   </div>
                 ))
               )}
+              <Separator />
+              <p className="text-xs text-muted-foreground">
+                Kill switch — closes every open position and cancels every working order on this account.
+              </p>
               <Button
                 variant="destructive"
                 className="w-full"
@@ -328,11 +348,11 @@ function ExecutionPage() {
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "profit" | "loss" }) {
   return (
-    <div>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+    <div className="rounded-md border border-border bg-muted/25 px-3 py-2.5">
+      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
       <div
         className={cn(
-          "font-mono text-lg",
+          "tabular mt-1 text-lg",
           tone === "profit" && "text-profit",
           tone === "loss" && "text-loss",
         )}

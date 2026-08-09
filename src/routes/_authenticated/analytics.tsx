@@ -62,13 +62,15 @@ function AnalyticsPage() {
 
   return (
     <AppShell>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <p className="text-sm text-muted-foreground">Live trades only — backtest results are excluded.</p>
+      <div className="mb-5">
+        <p className="eyebrow">Your edge</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Live trades only — backtest results are excluded.
+        </p>
       </div>
 
       {rows.length === 0 ? (
-        <Card>
+        <Card className="panel">
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
             Log a few trades in the journal and your edge metrics will appear here.
           </CardContent>
@@ -86,9 +88,9 @@ function AnalyticsPage() {
             <Metric label="Trades" value={String(stats.tradeCount)} />
           </div>
 
-          <Card>
+          <Card className="panel">
             <CardHeader>
-              <CardTitle className="text-base">Equity curve</CardTitle>
+              <CardTitle className="font-display text-base">Equity curve</CardTitle>
               <CardDescription>Cumulative realized P&L, trade by trade.</CardDescription>
             </CardHeader>
             <CardContent className="h-72">
@@ -100,9 +102,9 @@ function AnalyticsPage() {
                       <stop offset="100%" stopColor="var(--profit)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="rgba(148,163,184,0.12)" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
+                  <CartesianGrid stroke="var(--grid)" strokeOpacity={0.6} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
                   <Tooltip
                     contentStyle={{
                       background: "var(--popover)",
@@ -124,18 +126,18 @@ function AnalyticsPage() {
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
+            <Card className="panel">
               <CardHeader>
-                <CardTitle className="text-base">P&L by setup</CardTitle>
+                <CardTitle className="font-display text-base">P&L by setup</CardTitle>
               </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={bySetup}>
-                    <CartesianGrid stroke="rgba(148,163,184,0.12)" />
-                    <XAxis dataKey="setup" tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
+                    <CartesianGrid stroke="var(--grid)" strokeOpacity={0.6} />
+                    <XAxis dataKey="setup" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
+                    <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
                     <Tooltip
-                      cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                      cursor={{ fill: "var(--grid)", fillOpacity: 0.35 }}
                       contentStyle={{
                         background: "var(--popover)",
                         border: "1px solid var(--border)",
@@ -149,18 +151,18 @@ function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="panel">
               <CardHeader>
-                <CardTitle className="text-base">P&L by hour of day</CardTitle>
+                <CardTitle className="font-display text-base">P&L by hour of day</CardTitle>
               </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={byHour}>
-                    <CartesianGrid stroke="rgba(148,163,184,0.12)" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="rgba(148,163,184,0.6)" />
+                    <CartesianGrid stroke="var(--grid)" strokeOpacity={0.6} />
+                    <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
+                    <YAxis tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" />
                     <Tooltip
-                      cursor={{ fill: "rgba(148,163,184,0.08)" }}
+                      cursor={{ fill: "var(--grid)", fillOpacity: 0.35 }}
                       contentStyle={{
                         background: "var(--popover)",
                         border: "1px solid var(--border)",
@@ -182,11 +184,17 @@ function AnalyticsPage() {
 
 function Metric({ label, value, tone }: { label: string; value: string; tone?: "profit" | "loss" }) {
   return (
-    <Card>
+    <Card className="panel">
       <CardContent className="pt-6">
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+          {label}
+        </div>
         <div
-          className={cn("mt-1 font-mono text-2xl", tone === "profit" && "text-profit", tone === "loss" && "text-loss")}
+          className={cn(
+            "tabular mt-1.5 text-2xl font-semibold",
+            tone === "profit" && "text-profit",
+            tone === "loss" && "text-loss",
+          )}
         >
           {value}
         </div>
