@@ -15,6 +15,14 @@ import {
   timeframeToUnit,
 } from "./topstepx.server";
 import { checkPreTrade, dailyStateFromTrades, type RiskLimits } from "./risk";
+import {
+  toAccountDTO,
+  toOrderDTO,
+  toPositionDTO,
+  type BrokerAccountDTO,
+  type BrokerOrderDTO,
+  type BrokerPositionDTO,
+} from "./broker-types";
 
 export const getBrokerStatus = createServerFn({ method: "GET" }).handler(async () => {
   const cfg = readConfig();
@@ -83,9 +91,9 @@ export const getAccounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const cfg = readConfig();
-    if (!cfg) return { configured: false, accounts: [] as unknown[] };
+    if (!cfg) return { configured: false, accounts: [] as BrokerAccountDTO[] };
     const res = await searchAccounts(cfg);
-    return { configured: true, accounts: res.accounts ?? [] };
+    return { configured: true, accounts: (res.accounts ?? []).map(toAccountDTO) };
   });
 
 export const getPositions = createServerFn({ method: "POST" })
@@ -93,9 +101,9 @@ export const getPositions = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ accountId: z.number().int() }).parse(input))
   .handler(async ({ data }) => {
     const cfg = readConfig();
-    if (!cfg) return { configured: false, positions: [] as unknown[] };
+    if (!cfg) return { configured: false, positions: [] as BrokerPositionDTO[] };
     const res = await searchPositions(cfg, data.accountId);
-    return { configured: true, positions: res.positions ?? [] };
+    return { configured: true, positions: (res.positions ?? []).map(toPositionDTO) };
   });
 
 export const getRecentOrders = createServerFn({ method: "POST" })
@@ -103,10 +111,10 @@ export const getRecentOrders = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ accountId: z.number().int() }).parse(input))
   .handler(async ({ data }) => {
     const cfg = readConfig();
-    if (!cfg) return { configured: false, orders: [] as unknown[] };
+    if (!cfg) return { configured: false, orders: [] as BrokerOrderDTO[] };
     const since = new Date(Date.now() - 7 * 86400_000).toISOString();
     const res = await searchOrders(cfg, data.accountId, since);
-    return { configured: true, orders: res.orders ?? [] };
+    return { configured: true, orders: (res.orders ?? []).map(toOrderDTO) };
   });
 
 /**
