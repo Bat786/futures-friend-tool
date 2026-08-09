@@ -129,7 +129,14 @@ export const getRiskState = createServerFn({ method: "GET" })
       defaultTargetTicks: settings?.default_target_ticks ?? 40,
     };
 
-    return { limits, state, defaults };
+    const weights = {
+      rsi: Number(settings?.weight_rsi ?? 1),
+      vwap: Number(settings?.weight_vwap ?? 1),
+      macd: Number(settings?.weight_macd ?? 1),
+      momentum: Number(settings?.weight_momentum ?? 1),
+    };
+
+    return { limits, state, defaults, weights };
   });
 
 export const updateRiskSettings = createServerFn({ method: "POST" })
@@ -144,6 +151,10 @@ export const updateRiskSettings = createServerFn({ method: "POST" })
         default_stop_ticks: z.number().int().min(1).max(2000),
         default_target_ticks: z.number().int().min(1).max(4000),
         kill_switch_armed: z.boolean(),
+        weight_rsi: z.number().min(0).max(3),
+        weight_vwap: z.number().min(0).max(3),
+        weight_macd: z.number().min(0).max(3),
+        weight_momentum: z.number().min(0).max(3),
       })
       .parse(input),
   )

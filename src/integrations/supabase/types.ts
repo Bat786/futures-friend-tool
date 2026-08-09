@@ -201,6 +201,10 @@ export type Database = {
           max_trades_per_day: number
           updated_at: string
           user_id: string
+          weight_macd: number
+          weight_momentum: number
+          weight_rsi: number
+          weight_vwap: number
         }
         Insert: {
           daily_loss_limit?: number
@@ -212,6 +216,10 @@ export type Database = {
           max_trades_per_day?: number
           updated_at?: string
           user_id: string
+          weight_macd?: number
+          weight_momentum?: number
+          weight_rsi?: number
+          weight_vwap?: number
         }
         Update: {
           daily_loss_limit?: number
@@ -223,6 +231,10 @@ export type Database = {
           max_trades_per_day?: number
           updated_at?: string
           user_id?: string
+          weight_macd?: number
+          weight_momentum?: number
+          weight_rsi?: number
+          weight_vwap?: number
         }
         Relationships: []
       }
@@ -284,6 +296,7 @@ export type Database = {
           order_ids: string[]
           pnl: number | null
           pnl_r_multiple: number | null
+          risk_at_entry: number | null
           setup_tag: string | null
           side: string
           size: number
@@ -310,6 +323,7 @@ export type Database = {
           order_ids?: string[]
           pnl?: number | null
           pnl_r_multiple?: number | null
+          risk_at_entry?: number | null
           setup_tag?: string | null
           side?: string
           size?: number
@@ -336,6 +350,7 @@ export type Database = {
           order_ids?: string[]
           pnl?: number | null
           pnl_r_multiple?: number | null
+          risk_at_entry?: number | null
           setup_tag?: string | null
           side?: string
           size?: number
