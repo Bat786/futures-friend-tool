@@ -24,6 +24,11 @@ export function gatewayFor(environment: Environment): string {
   return environment === "live" ? LIVE_GATEWAY : DEMO_GATEWAY;
 }
 
+/** Convert a Uint8Array slice to a plain ArrayBuffer for Web Crypto APIs. */
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}
+
 /** Exported for tests; never touch in UI code. */
 function getRandomBytes(length: number): Uint8Array {
   if (typeof crypto === "undefined" || !("getRandomValues" in crypto)) {
@@ -34,11 +39,15 @@ function getRandomBytes(length: number): Uint8Array {
 
 async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(passphrase), "PBKDF2", false, [
-    "deriveKey",
-  ]);
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: 100_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: toArrayBuffer(salt), iterations: 100_000, hash: "SHA-256" },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false,
@@ -51,7 +60,11 @@ export async function encryptVault(plaintext: string, passphrase: string): Promi
   const salt = getRandomBytes(16);
   const iv = getRandomBytes(12);
   const key = await deriveKey(passphrase, salt);
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(plaintext));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: toArrayBuffer(iv) },
+    key,
+    encoder.encode(plaintext),
+  );
   const buf = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
   buf.set(salt, 0);
   buf.set(iv, salt.length);
