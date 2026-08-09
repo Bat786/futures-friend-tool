@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * AETHRA design system — near-black chassis, hot pink brand, electric purple
+ * AETHRON design system — near-black chassis, hot pink brand, electric purple
  * intelligence, bright yellow accent. All colors are oklch tokens; components
  * must never hardcode colors.
  */
@@ -261,14 +261,14 @@
 }
 
 @utility flash-up {
-  animation: aethra-flash-up var(--motion-slow) var(--ease-swift);
+  animation: aethron-flash-up var(--motion-slow) var(--ease-swift);
 }
 
 @utility flash-down {
-  animation: aethra-flash-down var(--motion-slow) var(--ease-swift);
+  animation: aethron-flash-down var(--motion-slow) var(--ease-swift);
 }
 
-@keyframes aethra-flash-up {
+@keyframes aethron-flash-up {
   from {
     background-color: color-mix(in oklab, var(--profit) 28%, transparent);
   }
@@ -277,7 +277,7 @@
   }
 }
 
-@keyframes aethra-flash-down {
+@keyframes aethron-flash-down {
   from {
     background-color: color-mix(in oklab, var(--loss) 28%, transparent);
   }
