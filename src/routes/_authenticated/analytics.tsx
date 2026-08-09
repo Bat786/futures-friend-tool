@@ -22,13 +22,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
-      { title: "Analytics — expectancy, win rate and equity curve" },
+      { title: "AETHRON Analytics — expectancy, win rate and equity curve" },
       {
         name: "description",
         content:
           "See your futures edge: net P&L, expectancy, win rate, max drawdown, equity curve and performance by setup and hour.",
       },
-      { property: "og:title", content: "Analytics — expectancy, win rate and equity curve" },
+      { property: "og:title", content: "AETHRON Analytics — expectancy, win rate and equity curve" },
       {
         property: "og:description",
         content: "Turn your trade journal into a picture of where your edge actually comes from.",

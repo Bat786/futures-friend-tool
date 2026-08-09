@@ -17,13 +17,13 @@ import { BrokerConnectCard } from "@/components/broker-connect-card";
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — risk limits and kill switch" },
+      { title: "AETHRON Risk — limits and kill switch" },
       {
         name: "description",
         content:
           "Set your daily loss limit, max trades per day, loss-streak cap, position size ceiling and default bracket ticks.",
       },
-      { property: "og:title", content: "Settings — risk limits and kill switch" },
+      { property: "og:title", content: "AETHRON Risk — limits and kill switch" },
       {
         property: "og:description",
         content: "Tune the guardrails that every order must pass before it reaches the broker.",

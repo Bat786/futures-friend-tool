@@ -21,13 +21,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/journal")({
   head: () => ({
     meta: [
-      { title: "Trade journal — log entries, exits and setups" },
+      { title: "AETHRON Journal — log entries, exits and setups" },
       {
         name: "description",
         content:
           "Record every futures trade with entry, exit, stop, setup tag and notes. P&L and R multiple are calculated for you.",
       },
-      { property: "og:title", content: "Trade journal — log entries, exits and setups" },
+      { property: "og:title", content: "AETHRON Journal — log entries, exits and setups" },
       {
         property: "og:description",
         content: "A private, per-account journal of every futures trade you take.",
