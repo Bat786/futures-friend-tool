@@ -24,7 +24,7 @@ export function BrokerConnectCard() {
   const [apiKey, setApiKey] = useState("");
   const [environment, setEnvironment] = useState<Env>("demo");
   const [liveConfirm, setLiveConfirm] = useState("");
-  const [accounts, setAccounts] = useState<{ id: number; name: string; balance: number; canTrade: boolean }[]>([]);
+  const [accounts, setAccounts] = useState<{ id: number; name: string; balance: number | null; canTrade: boolean }[]>([]);
 
   useEffect(() => {
     if (!conn.data?.configured) return;
@@ -174,9 +174,7 @@ export function BrokerConnectCard() {
               <Row
                 key={a.id}
                 label={a.name}
-                value={`${a.balance.toLocaleString(undefined, { style: "currency", currency: "USD" })} · ${
-                  a.canTrade ? "tradable" : "locked"
-                }`}
+                value={`${a.balance == null ? "—" : a.balance.toLocaleString(undefined, { style: "currency", currency: "USD" })} · ${a.canTrade ? "tradable" : "locked"}`}
               />
             ))}
           </div>
