@@ -52,46 +52,34 @@ export type Database = {
       }
       broker_accounts: {
         Row: {
-          api_key_ciphertext: string | null
           broker: string
           created_at: string
-          environment: string
           external_account_id: string
           id: string
           is_demo: boolean
           label: string
-          last_verified_at: string | null
           updated_at: string
           user_id: string
-          username: string | null
         }
         Insert: {
-          api_key_ciphertext?: string | null
           broker?: string
           created_at?: string
-          environment?: string
           external_account_id?: string
           id?: string
           is_demo?: boolean
           label?: string
-          last_verified_at?: string | null
           updated_at?: string
           user_id: string
-          username?: string | null
         }
         Update: {
-          api_key_ciphertext?: string | null
           broker?: string
           created_at?: string
-          environment?: string
           external_account_id?: string
           id?: string
           is_demo?: boolean
           label?: string
-          last_verified_at?: string | null
           updated_at?: string
           user_id?: string
-          username?: string | null
         }
         Relationships: []
       }
