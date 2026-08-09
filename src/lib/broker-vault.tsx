@@ -26,7 +26,7 @@ export function gatewayFor(environment: Environment): string {
 
 /** Convert a Uint8Array slice to a plain ArrayBuffer for Web Crypto APIs. */
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 /** Exported for tests; never touch in UI code. */
