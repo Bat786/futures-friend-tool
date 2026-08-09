@@ -165,3 +165,82 @@ export const updateRiskSettings = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const orderEntryInput = z.object({
+  accountId: z.number().int(),
+  symbol: z.string().min(1),
+  side: z.number().int(),
+  size: z.number().int().min(1),
+  entryPrice: z.number().nullable(),
+  orderType: z.number().int(),
+  stopLossTicks: z.number().int().min(1),
+  takeProfitTicks: z.number().int().min(1),
+  setupTag: z.string().max(60).nullable(),
+  supervised: z.boolean().default(false),
+  snapshot: z.object({
+    rsi: z.number().nullable(),
+    vwap: z.number().nullable(),
+    macd: z.number().nullable(),
+    momentum: z.number().nullable(),
+    score: z.number().nullable(),
+  }),
+});
+
+/** Persist a trade entry after it has been successfully executed from the user's device. */
+export const logOrderEntry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => orderEntryInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const inst = instrumentBySymbol(data.symbol);
+    const side = data.side === 1 ? "buy" : "sell";
+    const entryPrice = data.entryPrice;
+    const stopTicks = data.stopLossTicks * inst.tickSize;
+    const targetTicks = data.takeProfitTicks * inst.tickSize;
+    const stopPrice = entryPrice !== null ? (side === "buy" ? entryPrice - stopTicks : entryPrice + stopTicks) : null;
+    const targetPrice = entryPrice !== null ? (side === "buy" ? entryPrice + targetTicks : entryPrice - targetTicks) : null;
+    const now = new Date().toISOString();
+
+    const tradeRow = {
+      user_id: context.userId,
+      account_id: String(data.accountId),
+      contract_id: inst.contractId,
+      symbol: data.symbol,
+      side,
+      size: data.size,
+      entry_price: entryPrice,
+      exit_price: null,
+      entry_time: now,
+      exit_time: null,
+      fees: 0,
+      pnl: null,
+      pnl_r_multiple: null,
+      stop_price: stopPrice,
+      target_price: targetPrice,
+      setup_tag: data.setupTag,
+      notes: data.supervised ? "Sent from supervised device session." : "Sent from unattended session.",
+      is_backtest: false,
+      status: "open",
+    };
+
+    const { data: saved, error: tradeError } = await context.supabase
+      .from("trades")
+      .insert(tradeRow)
+      .select("*")
+      .single();
+    if (tradeError) throw new Error(tradeError.message);
+
+    const signalRows = [
+      { user_id: context.userId, trade_id: saved.id, indicator_name: "rsi", value_at_entry: data.snapshot.rsi },
+      { user_id: context.userId, trade_id: saved.id, indicator_name: "vwap", value_at_entry: data.snapshot.vwap },
+      { user_id: context.userId, trade_id: saved.id, indicator_name: "macd", value_at_entry: data.snapshot.macd },
+      { user_id: context.userId, trade_id: saved.id, indicator_name: "momentum", value_at_entry: data.snapshot.momentum },
+      { user_id: context.userId, trade_id: saved.id, indicator_name: "score", value_at_entry: data.snapshot.score },
+    ].filter((r) => r.value_at_entry !== null);
+
+    if (signalRows.length) {
+      const { error: signalError } = await context.supabase.from("signals").insert(signalRows);
+      if (signalError) throw new Error(signalError.message);
+    }
+
+    return { trade: toJournalTrade(saved) };
+  });

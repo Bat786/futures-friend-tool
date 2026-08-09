@@ -1,21 +1,16 @@
 /**
- * Minimal TopstepX (ProjectX Gateway) REST client.
+ * Minimal browser-safe TopstepX (ProjectX Gateway) REST client.
  *
- * Credentials are read from the server environment inside each call, never at
- * module scope and never in the browser. Base URL defaults to the demo gateway
- * — switching to the live path is a deliberate change, because live orders are
- * final and Topstep does not offer coding support.
+ * This module runs only in the browser. It takes a BrokerConfig from the local
+ * vault and talks directly to TopstepX from the trader's personal device.
  */
 
 const DEMO_BASE = "https://gateway-api-demo.s2f.projectx.com/api";
 
 export type BrokerConfig = { username: string; apiKey: string; baseUrl: string };
 
-export function readConfig(): BrokerConfig | null {
-  const username = process.env["TOPSTEPX_USERNAME"];
-  const apiKey = process.env["TOPSTEPX_API_KEY"];
-  if (!username || !apiKey) return null;
-  return { username, apiKey, baseUrl: process.env["TOPSTEPX_BASE_URL"] ?? DEMO_BASE };
+export function defaultBaseUrl(): string {
+  return DEMO_BASE;
 }
 
 export function isDemo(cfg: BrokerConfig): boolean {
@@ -191,7 +186,7 @@ export function timeframeToUnit(tf: string): { unit: number; unitNumber: number 
       return { unit: 2, unitNumber: 5 };
   }
 }
-/** Contract discovery — used to resolve a root like "MES" to the front month. */
+
 export type GatewayContract = {
   id?: string;
   name?: string;

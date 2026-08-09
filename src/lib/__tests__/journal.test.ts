@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computePnl, computeRMultiple, expectancy, maxDrawdown, winRate, type JournalTrade } from "../analytics";
 import { checkPreTrade, DEFAULT_LIMITS, todayKey, type DailyState } from "../risk";
-import { __test as contractTest } from "../contracts.server";
+import { __test as contractTest } from "../broker-client";
 
 const trade = (over: Partial<JournalTrade>): JournalTrade => ({
   id: crypto.randomUUID(),

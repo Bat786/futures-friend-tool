@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </h1>
             <span className="ml-3 hidden items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-primary sm:inline-flex">
               <span className="size-1.5 rounded-full bg-primary" />
-              Live
+              Device
             </span>
 
             <div className="ml-auto flex items-center gap-3">
