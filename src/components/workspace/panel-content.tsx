@@ -304,7 +304,7 @@ function AiPanel({ ctx }: { ctx: PanelContext }) {
           {signal.score.toFixed(0)}
         </span>{" "}
         ({signal.direction}) on the {ctx.timeframe} chart, with {agree} of {signal.readings.length} indicators aligned.
-        Conviction rises above ±20; below that AETHRA treats the tape as chop and recommends standing aside.
+        Conviction rises above ±20; below that AETHRON treats the tape as chop and recommends standing aside.
       </p>
       <div className="rounded-md border border-ai/30 bg-ai/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
         Intelligence is advisory. Every order still requires you at the desk on your personal device.

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AethraMark } from "@/components/brand/aethra-logo";
+import { AethronMark } from "@/components/brand/aethron-logo";
 
 /** Shared chrome for every unauthenticated screen. */
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -14,9 +14,9 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="mb-7 flex items-center justify-center gap-2.5">
-          <AethraMark className="size-9" />
+          <AethronMark className="size-9" />
           <span className="font-display text-lg font-bold uppercase tracking-[0.34em] text-gradient-brand">
-            Aethra
+            Aethron
           </span>
         </div>
         {children}

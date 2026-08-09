@@ -35,12 +35,12 @@ export type SavedLayout = {
 
 export const PANEL_META: Record<PanelId, { title: string; kicker: string }> = {
   chart: { title: "Chart", kicker: "Price action" },
-  signal: { title: "Signal", kicker: "Composite score" },
-  positions: { title: "Positions", kicker: "Open exposure" },
-  risk: { title: "Risk", kicker: "Prop-firm guardrails" },
-  scanner: { title: "Scanner", kicker: "Unusual activity" },
+  signal: { title: "AETHRON Signals", kicker: "Composite score" },
+  positions: { title: "AETHRON Flow", kicker: "Open exposure" },
+  risk: { title: "AETHRON Risk", kicker: "Prop-firm guardrails" },
+  scanner: { title: "AETHRON Scanner", kicker: "Unusual activity" },
   news: { title: "News", kicker: "Impact and calendar" },
-  ai: { title: "AETHRA AI", kicker: "Market intelligence" },
+  ai: { title: "AETHRON AI", kicker: "Market intelligence" },
   journal: { title: "Journal", kicker: "Recent trades" },
 };
 
