@@ -29,13 +29,13 @@ function readingValue(signal: CompositeSignal | null, name: string): number | nu
 export const Route = createFileRoute("/_authenticated/execution")({
   head: () => ({
     meta: [
-      { title: "Execution — supervised order ticket and risk gate" },
+      { title: "AETHRON Flow — supervised order ticket and risk gate" },
       {
         name: "description",
         content:
           "Place supervised futures orders from your device with pre-trade risk checks, bracket stops and a one-click flatten-all kill switch.",
       },
-      { property: "og:title", content: "Execution — supervised order ticket and risk gate" },
+      { property: "og:title", content: "AETHRON Flow — supervised order ticket and risk gate" },
       {
         property: "og:description",
         content: "Every order passes your daily loss, trade count and position size limits first.",

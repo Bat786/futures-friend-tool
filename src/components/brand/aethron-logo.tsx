@@ -1,8 +1,8 @@
-import mark from "@/assets/aethra-mark.png";
+import mark from "@/assets/aethron-mark.png";
 import { cn } from "@/lib/utils";
 
-/** AETHRA mark — the gradient A used in the sidebar, auth screens and landing. */
-export function AethraMark({ className }: { className?: string }) {
+/** AETHRON mark — the gradient A used in the sidebar, auth screens and landing. */
+export function AethronMark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
@@ -16,15 +16,15 @@ export function AethraMark({ className }: { className?: string }) {
         alt=""
         aria-hidden
         loading="lazy"
-        width={816}
-        height={816}
+        width={1024}
+        height={1024}
         className="size-full object-contain brightness-0 invert"
       />
     </span>
   );
 }
 
-export function AethraWordmark({
+export function AethronWordmark({
   className,
   tagline,
 }: {
@@ -34,7 +34,7 @@ export function AethraWordmark({
   return (
     <span className={cn("min-w-0", className)}>
       <span className="block truncate font-display text-sm font-bold uppercase tracking-[0.32em] text-gradient-brand">
-        Aethra
+        Aethron
       </span>
       {tagline && (
         <span className="block truncate font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">

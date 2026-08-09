@@ -23,13 +23,13 @@ const PriceChart = lazy(() => import("@/components/price-chart"));
 export const Route = createFileRoute("/_authenticated/terminal")({
   head: () => ({
     meta: [
-      { title: "Terminal — live futures signal gauge" },
+      { title: "AETHRON Signals — live futures signal gauge" },
       {
         name: "description",
         content:
           "Candlestick chart, session VWAP and a weighted RSI/VWAP/MACD/momentum signal gauge for ES, NQ, CL, GC and YM futures.",
       },
-      { property: "og:title", content: "Terminal — live futures signal gauge" },
+      { property: "og:title", content: "AETHRON Signals — live futures signal gauge" },
       {
         property: "og:description",
         content: "Read the composite futures signal and its underlying indicators in one view.",

@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AETHRA — next-generation futures market intelligence" },
+      { title: "AETHRON — next-generation futures market intelligence" },
       {
         name: "description",
         content:
-          "AETHRA fuses market intelligence, a prop-firm risk engine and supervised execution into one modular futures trading terminal.",
+          "AETHRON fuses market intelligence, a prop-firm risk engine and supervised execution into one modular futures trading terminal.",
       },
-      { property: "og:title", content: "AETHRA — next-generation futures market intelligence" },
+      { property: "og:title", content: "AETHRON — next-generation futures market intelligence" },
       {
         property: "og:description",
         content: "Intelligence, risk and agent-assisted decisions in one modular futures terminal.",

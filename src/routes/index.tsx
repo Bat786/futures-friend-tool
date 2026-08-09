@@ -2,19 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Activity, BarChart3, BookOpen, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AethraMark } from "@/components/brand/aethra-logo";
+import { AethronMark } from "@/components/brand/aethron-logo";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AETHRA — futures market intelligence and execution terminal" },
+      { title: "AETHRON — futures market intelligence and execution terminal" },
       {
         name: "description",
         content:
-          "AETHRA is a modular futures terminal for prop-firm traders: market intelligence, a prop-firm risk engine, a trade journal and supervised, risk-gated execution.",
+          "AETHRON is a modular futures terminal for prop-firm traders: market intelligence, a prop-firm risk engine, a trade journal and supervised, risk-gated execution.",
       },
-      { property: "og:title", content: "AETHRA — futures market intelligence and execution terminal" },
+      { property: "og:title", content: "AETHRON — futures market intelligence and execution terminal" },
       {
         property: "og:description",
         content: "A modular command center: intelligence, risk engine, journal and supervised execution.",
@@ -83,9 +83,9 @@ function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
-            <AethraMark className="size-8" />
+            <AethronMark className="size-8" />
             <span className="font-display text-base font-bold uppercase tracking-[0.32em] text-gradient-brand">
-              Aethra
+              Aethron
             </span>
           </div>
           <Button asChild size="sm">
