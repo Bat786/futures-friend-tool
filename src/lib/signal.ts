@@ -1,165 +1,159 @@
 import type { Bar, Timeframe } from "./market";
-import { ema, macd, momentum, relativeVolume, rsi, vwap } from "./indicators";
+import { macd, momentum, rsi, volumeZScore, vwap } from "./indicators";
 
 export type SignalDirection = "bullish" | "bearish" | "neutral";
 
 export type IndicatorReading = {
   name: string;
-  value: number | null;
+  value: number;
   display: string;
-  score: number; // -100..100 contribution before weighting
-  weight: number;
   direction: SignalDirection;
+  weight: number;
   note: string;
 };
 
 export type CompositeSignal = {
-  score: number; // -100..100
+  score: number; // -100 (max bearish) to +100 (max bullish)
   direction: SignalDirection;
   label: string;
   readings: IndicatorReading[];
   timeframe: Timeframe;
   lastPrice: number | null;
+  barTime: number | null;
 };
 
-function last<T>(arr: (T | null)[]): T | null {
-  for (let i = arr.length - 1; i >= 0; i--) {
-    const v = arr[i];
-    if (v !== null && v !== undefined) return v;
-  }
-  return null;
-}
+export type SignalWeights = { rsi: number; vwap: number; macd: number; momentum: number };
 
-function dirOf(score: number): SignalDirection {
-  if (score > 15) return "bullish";
-  if (score < -15) return "bearish";
+export const DEFAULT_WEIGHTS: SignalWeights = { rsi: 1, vwap: 1, macd: 1, momentum: 1 };
+
+const DIRECTION_SCORE: Record<SignalDirection, number> = { bullish: 1, neutral: 0, bearish: -1 };
+
+function classifyRsi(value: number): SignalDirection {
+  if (value >= 60) return "bullish";
+  if (value <= 40) return "bearish";
   return "neutral";
 }
 
-function clamp(v: number, min = -100, max = 100) {
-  return Math.max(min, Math.min(max, v));
+function classifyPriceVsVwap(price: number, vwapValue: number | null): SignalDirection {
+  if (vwapValue === null) return "neutral";
+  if (price > vwapValue) return "bullish";
+  if (price < vwapValue) return "bearish";
+  return "neutral";
 }
 
-export function computeSignal(bars: Bar[], timeframe: Timeframe): CompositeSignal {
+function classifyMacdHist(hist: number): SignalDirection {
+  if (hist > 0) return "bullish";
+  if (hist < 0) return "bearish";
+  return "neutral";
+}
+
+function classifyMomentum(value: number, threshold = 0.05): SignalDirection {
+  if (value > threshold) return "bullish";
+  if (value < -threshold) return "bearish";
+  return "neutral";
+}
+
+function lastOf<T>(arr: T[]): T | undefined {
+  return arr.length ? arr[arr.length - 1] : undefined;
+}
+
+export const EMPTY_SIGNAL: CompositeSignal = {
+  score: 0,
+  direction: "neutral",
+  label: "Neutral",
+  readings: [],
+  timeframe: "5m",
+  lastPrice: null,
+  barTime: null,
+};
+
+/**
+ * Weighted vote across indicators — deliberately transparent, so the gauge can
+ * always explain itself and weights stay user-tunable.
+ */
+export function computeSignal(
+  bars: Bar[],
+  timeframe: Timeframe,
+  weights: SignalWeights = DEFAULT_WEIGHTS,
+): CompositeSignal {
+  if (!bars.length) return { ...EMPTY_SIGNAL, timeframe };
+
   const closes = bars.map((b) => b.close);
-  const lastPrice = closes.length ? closes[closes.length - 1]! : null;
+  const lastClose = closes[closes.length - 1]!;
+  const lastBarTime = bars[bars.length - 1]!.time;
 
-  const rsiValue = last(rsi(closes, 14));
-  const vwapValue = last(vwap(bars));
-  const { histogram } = macd(closes);
-  const macdValue = last(histogram);
-  const momValue = last(momentum(closes, 10));
-  const rvolValue = last(relativeVolume(bars, 20));
-  const emaFast = last(ema(closes, 9));
-  const emaSlow = last(ema(closes, 21));
+  const latestRsi = lastOf(rsi(closes, 14)) ?? 50;
+  const latestVwap = lastOf(vwap(bars)) ?? null;
+  const latestHist = lastOf(macd(closes).histogram) ?? 0;
+  const latestMomentum = lastOf(momentum(closes, 10)) ?? null;
+  const latestVolZ = lastOf(volumeZScore(bars, 20)) ?? null;
 
-  const readings: IndicatorReading[] = [];
-
-  {
-    const score = rsiValue === null ? 0 : clamp((rsiValue - 50) * 2.4);
-    readings.push({
-      name: "RSI (14)",
-      value: rsiValue,
-      display: rsiValue === null ? "—" : rsiValue.toFixed(1),
-      score,
-      weight: 0.22,
-      direction: dirOf(score),
-      note:
-        rsiValue === null
-          ? "Not enough bars"
-          : rsiValue > 70
-            ? "Overbought"
-            : rsiValue < 30
-              ? "Oversold"
-              : "In range",
-    });
-  }
-
-  {
-    const pct =
-      vwapValue && lastPrice ? ((lastPrice - vwapValue) / vwapValue) * 100 : null;
-    const score = pct === null ? 0 : clamp(pct * 60);
-    readings.push({
+  const readings: IndicatorReading[] = [
+    {
+      name: "RSI",
+      value: latestRsi,
+      display: latestRsi.toFixed(1),
+      direction: classifyRsi(latestRsi),
+      weight: weights.rsi,
+      note: latestRsi >= 70 ? "Overbought" : latestRsi <= 30 ? "Oversold" : "In range",
+    },
+    {
       name: "VWAP",
-      value: vwapValue,
-      display: vwapValue === null ? "—" : vwapValue.toFixed(2),
-      score,
-      weight: 0.24,
-      direction: dirOf(score),
-      note: pct === null ? "Not enough bars" : `${pct >= 0 ? "Above" : "Below"} by ${Math.abs(pct).toFixed(2)}%`,
-    });
-  }
+      value: latestVwap ?? 0,
+      display: latestVwap === null ? "—" : latestVwap.toFixed(2),
+      direction: classifyPriceVsVwap(lastClose, latestVwap),
+      weight: weights.vwap,
+      note:
+        latestVwap === null
+          ? "No volume yet this session"
+          : `Price ${lastClose > latestVwap ? "above" : lastClose < latestVwap ? "below" : "at"} session VWAP`,
+    },
+    {
+      name: "MACD",
+      value: latestHist,
+      display: latestHist.toFixed(3),
+      direction: classifyMacdHist(latestHist),
+      weight: weights.macd,
+      note: latestHist > 0 ? "Histogram positive" : latestHist < 0 ? "Histogram negative" : "Flat",
+    },
+    {
+      name: "Momentum",
+      value: latestMomentum ?? 0,
+      display: latestMomentum === null ? "—" : `${latestMomentum.toFixed(2)}%`,
+      direction: latestMomentum === null ? "neutral" : classifyMomentum(latestMomentum),
+      weight: weights.momentum,
+      note: latestMomentum === null ? "Not enough bars" : "Rate of change over 10 bars",
+    },
+  ];
 
-  {
-    const norm = macdValue !== null && lastPrice ? (macdValue / lastPrice) * 100 : null;
-    const score = norm === null ? 0 : clamp(norm * 220);
-    readings.push({
-      name: "MACD histogram",
-      value: macdValue,
-      display: macdValue === null ? "—" : macdValue.toFixed(3),
-      score,
-      weight: 0.22,
-      direction: dirOf(score),
-      note: macdValue === null ? "Not enough bars" : macdValue >= 0 ? "Momentum expanding" : "Momentum fading",
-    });
-  }
+  const totalWeight = readings.reduce((acc, r) => acc + r.weight, 0);
+  const weightedSum = readings.reduce((acc, r) => acc + DIRECTION_SCORE[r.direction] * r.weight, 0);
+  const score = totalWeight ? Math.round(((weightedSum / totalWeight) * 100) * 10) / 10 : 0;
 
-  {
-    const score = momValue === null ? 0 : clamp(momValue * 45);
-    readings.push({
-      name: "Momentum (10)",
-      value: momValue,
-      display: momValue === null ? "—" : `${momValue.toFixed(2)}%`,
-      score,
-      weight: 0.16,
-      direction: dirOf(score),
-      note: momValue === null ? "Not enough bars" : momValue >= 0 ? "Higher than 10 bars ago" : "Lower than 10 bars ago",
-    });
-  }
+  const direction: SignalDirection = score >= 20 ? "bullish" : score <= -20 ? "bearish" : "neutral";
 
-  {
-    const trend = emaFast !== null && emaSlow !== null ? emaFast - emaSlow : null;
-    const score = trend === null || !lastPrice ? 0 : clamp((trend / lastPrice) * 100 * 260);
-    readings.push({
-      name: "EMA 9 / 21",
-      value: trend,
-      display: emaFast === null || emaSlow === null ? "—" : `${emaFast.toFixed(2)} / ${emaSlow.toFixed(2)}`,
-      score,
-      weight: 0.16,
-      direction: dirOf(score),
-      note: trend === null ? "Not enough bars" : trend >= 0 ? "Fast above slow" : "Fast below slow",
-    });
-  }
-
-  // Relative volume does not pick a side; it scales conviction.
-  const conviction = rvolValue === null ? 1 : Math.max(0.6, Math.min(1.3, rvolValue));
-
-  const weighted = readings.reduce((acc, r) => acc + r.score * r.weight, 0);
-  const score = Math.round(clamp(weighted * conviction));
-
+  // Volume z-score is shown for context only — it casts no vote.
   readings.push({
-    name: "Relative volume",
-    value: rvolValue,
-    display: rvolValue === null ? "—" : `${rvolValue.toFixed(2)}x`,
-    score: 0,
-    weight: 0,
+    name: "Volume z-score",
+    value: latestVolZ ?? 0,
+    display: latestVolZ === null ? "—" : latestVolZ.toFixed(2),
     direction: "neutral",
+    weight: 0,
     note:
-      rvolValue === null
+      latestVolZ === null
         ? "Not enough bars"
-        : rvolValue >= 1.2
-          ? "Above average — conviction boosted"
-          : rvolValue <= 0.8
-            ? "Thin volume — conviction reduced"
-            : "Around average",
+        : latestVolZ >= 2
+          ? "Volume spike"
+          : latestVolZ <= -1
+            ? "Unusually thin"
+            : "Normal participation",
   });
 
-  const direction = dirOf(score);
   const strength = Math.abs(score);
   const label =
     direction === "neutral"
       ? "Neutral"
-      : `${strength > 60 ? "Strong " : strength > 30 ? "" : "Weak "}${direction === "bullish" ? "Bullish" : "Bearish"}`;
+      : `${strength >= 75 ? "Strong " : strength >= 45 ? "" : "Weak "}${direction === "bullish" ? "Bullish" : "Bearish"}`;
 
-  return { score, direction, label, readings, timeframe, lastPrice };
+  return { score, direction, label, readings, timeframe, lastPrice: lastClose, barTime: lastBarTime };
 }
