@@ -103,7 +103,7 @@ function ExecutionPage() {
     queryKey: ["positions", numericAccountId, config?.baseUrl ?? "locked"],
     queryFn: () => {
       if (!config) throw new Error("Vault locked");
-      return getPositions(config, numericAccountId);
+      return searchPositions(config, numericAccountId);
     },
     enabled: Number.isFinite(numericAccountId) && numericAccountId > 0 && !!config,
     refetchInterval: 15_000,
