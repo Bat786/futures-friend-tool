@@ -15,13 +15,13 @@ import { ResendConfirmation, authCallbackUrl } from "@/components/auth/resend-co
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Signal Desk futures terminal" },
+      { title: "Sign in — AETHRA futures terminal" },
       {
         name: "description",
         content:
-          "Sign in to Signal Desk to view live futures signals, your trade journal and supervised execution controls.",
+          "Sign in to AETHRA to view live futures signals, your trade journal and supervised execution controls.",
       },
-      { property: "og:title", content: "Sign in — Signal Desk futures terminal" },
+      { property: "og:title", content: "Sign in — AETHRA futures terminal" },
       {
         property: "og:description",
         content: "Access your futures signal gauge, trade journal and risk controls.",

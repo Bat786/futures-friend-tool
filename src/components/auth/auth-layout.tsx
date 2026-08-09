@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Activity } from "lucide-react";
+import { AethraMark } from "@/components/brand/aethra-logo";
 
 /** Shared chrome for every unauthenticated screen. */
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -8,19 +8,16 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="grid-backdrop pointer-events-none absolute inset-0 opacity-40" aria-hidden />
       <div
         className="pointer-events-none absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-        style={{ backgroundImage: "var(--gradient-mint)" }}
+        style={{ backgroundImage: "var(--gradient-aurora)" }}
         aria-hidden
       />
 
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="mb-7 flex items-center justify-center gap-2.5">
-          <span
-            className="grid size-9 place-items-center rounded-md text-primary-foreground"
-            style={{ backgroundImage: "var(--gradient-mint)" }}
-          >
-            <Activity className="size-4" />
+          <AethraMark className="size-9" />
+          <span className="font-display text-lg font-bold uppercase tracking-[0.34em] text-gradient-brand">
+            Aethra
           </span>
-          <span className="font-display text-lg font-semibold tracking-tight">Signal Desk</span>
         </div>
         {children}
       </div>

@@ -78,16 +78,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Signal Desk — futures signal and execution terminal" },
+      { title: "AETHRA — next-generation futures market intelligence" },
       {
         name: "description",
         content:
-          "Charting, a weighted signal gauge, a trade journal and supervised order execution for Topstep futures traders.",
+          "AETHRA fuses market intelligence, a prop-firm risk engine and supervised execution into one modular futures trading terminal.",
       },
-      { property: "og:title", content: "Signal Desk — futures signal and execution terminal" },
+      { property: "og:title", content: "AETHRA — next-generation futures market intelligence" },
       {
         property: "og:description",
-        content: "Signals, journal and supervised execution in one futures terminal.",
+        content: "Intelligence, risk and agent-assisted decisions in one modular futures terminal.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -102,9 +102,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
   shellComponent: RootShell,

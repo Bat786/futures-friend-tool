@@ -1,6 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { Activity, BarChart3, BookOpen, LogOut, Settings, Zap } from "lucide-react";
+import { Activity, BarChart3, BookOpen, LayoutGrid, LogOut, Settings, Zap } from "lucide-react";
 import type { ReactNode } from "react";
+import { AethraMark, AethraWordmark } from "@/components/brand/aethra-logo";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,6 +23,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 
 const NAV = [
+  { to: "/workspace", label: "Workspace", icon: LayoutGrid, hint: "Command center" },
   { to: "/terminal", label: "Terminal", icon: Activity, hint: "Chart + signal" },
   { to: "/execution", label: "Execution", icon: Zap, hint: "Order ticket" },
   { to: "/journal", label: "Journal", icon: BookOpen, hint: "Trade log" },
@@ -30,6 +32,7 @@ const NAV = [
 ] as const;
 
 const TITLES: Record<string, string> = {
+  "/workspace": "Workspace",
   "/terminal": "Terminal",
   "/execution": "Execution",
   "/journal": "Journal",
@@ -45,23 +48,9 @@ function DeskSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/terminal" className="flex items-center gap-2.5 px-1 py-1.5">
-          <span
-            className="grid size-8 shrink-0 place-items-center rounded-md text-primary-foreground"
-            style={{ backgroundImage: "var(--gradient-mint)" }}
-          >
-            <Activity className="size-4" />
-          </span>
-          {!collapsed && (
-            <span className="min-w-0">
-              <span className="block truncate font-display text-sm font-semibold tracking-tight">
-                Signal Desk
-              </span>
-              <span className="block truncate font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Supervised
-              </span>
-            </span>
-          )}
+        <Link to="/workspace" className="flex items-center gap-2.5 px-1 py-1.5">
+          <AethraMark className="size-8" />
+          {!collapsed && <AethraWordmark tagline="Supervised" />}
         </Link>
       </SidebarHeader>
 
@@ -117,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="h-5" />
             <h1 className="font-display text-sm font-semibold tracking-tight">
-              {TITLES[pathname] ?? "Signal Desk"}
+              {TITLES[pathname] ?? "AETHRA"}
             </h1>
             <span className="ml-3 hidden items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-primary sm:inline-flex">
               <span className="size-1.5 rounded-full bg-primary" />

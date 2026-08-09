@@ -10,15 +10,15 @@ import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 export const Route = createFileRoute("/auth-callback")({
   head: () => ({
     meta: [
-      { title: "Confirming your account — Signal Desk" },
+      { title: "Confirming your account — AETHRA" },
       {
         name: "description",
-        content: "Finishing email confirmation for your Signal Desk futures terminal account.",
+        content: "Finishing email confirmation for your AETHRA futures terminal account.",
       },
-      { property: "og:title", content: "Confirming your account — Signal Desk" },
+      { property: "og:title", content: "Confirming your account — AETHRA" },
       {
         property: "og:description",
-        content: "Finishing email confirmation for your Signal Desk account.",
+        content: "Finishing email confirmation for your AETHRA account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
