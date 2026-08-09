@@ -162,7 +162,8 @@ export async function placeOrder(
     takeProfitBracket?: { ticks: number; type: number } | null;
   },
 ): Promise<{ orderId?: number; success: boolean; errorMessage?: string }> {
-  return placeOrderRaw(config, params);
+  const res = await placeOrderRaw(config, params);
+  return { ...res, success: res.success === true };
 }
 
 /** Kill switch: flatten every open position and cancel every working order. */
