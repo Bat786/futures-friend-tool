@@ -194,7 +194,7 @@ function ExecutionPage() {
     mutationFn: async () => {
       if (!config) throw new Error("Vault locked");
       const res = await flattenAll(config, numericAccountId);
-      return { ok: res.success, flattened: res.flattened ?? 0, cancelled: res.cancelled ?? 0, reason: res.errorMessage };
+      return { ok: res.ok, flattened: res.flattened, cancelled: res.cancelled, reason: res.reason };
     },
     onSuccess: (res) => {
       if (!res.ok) toast.error(res.reason ?? "Kill switch hit an error");
