@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { getRiskState, updateRiskSettings } from "@/lib/journal.functions";
-import { getBrokerStatus } from "@/lib/broker.functions";
+import { BrokerConnectCard } from "@/components/broker-connect-card";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -39,7 +39,6 @@ function SettingsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const risk = useQuery({ queryKey: ["risk-state"], queryFn: () => getRiskState() });
-  const broker = useQuery({ queryKey: ["broker-status"], queryFn: () => getBrokerStatus() });
 
   const [form, setForm] = useState({
     daily_loss_limit: 500,
