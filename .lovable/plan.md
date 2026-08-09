@@ -1,46 +1,51 @@
-# Closing the `example_full.py` gaps
+# "Panel" instrument-panel redesign + backend gap closure
 
-Your indicators, signal engine and bridge are already ported and matching (`src/lib/indicators.ts`, `src/lib/signal.ts`, `getSignal` in `src/lib/broker.functions.ts`). What's left is the surrounding layer that `example_full.py` demonstrates.
+Your `dashboard.html` is the design target: a brass-and-graphite instrument panel, not a generic chart-in-a-box. The current app is on the Neon Mint theme, so this is a full visual re-skin plus the terminal layout, done alongside the four backend items you picked.
 
-## 1. Log signal readings at entry
+## 1. Design system swap
 
-Today `submitOrder` runs the risk gate and places the order, but nothing is written to the journal. Mirror the Python order of operations:
+Replace the current tokens in `src/styles.css` with the Panel palette:
 
-- Open the trade row **before** sending the order, so a crash or rejection still leaves a record (status `open`, then marked `rejected` if the broker refuses).
-- Compute the composite signal server-side at that moment and write one `signals` row per indicator (`indicator_name`, `value_at_entry`, `direction`, `timeframe`) — the analogue of `journal.record_signal()`.
-- Record the entry `fill` row with the returned order id.
-- Return the trade id to the ticket so the execution page can show what was logged.
+```text
+bg #0B0D0F   panel #14171A   raised #191D21
+line #262B30 / #34393F       text #E7E4DD / #8A8F94 / #565B60
+brass #C08A3E (accent)       bull #4A9B6E   bear #B5504A
+```
 
-This makes the later question answerable: which readings preceded winners. A new analytics panel will group closed trades by the direction each indicator held at entry, with win rate and expectancy per indicator.
+Typography: JetBrains Mono for every number, label and tag; Inter for prose. Square 3px corners, 1px hairline borders, no glows, no gradients. Sidebar navigation stays but is restyled as a hardware rail; the header becomes the brand mark + session clock in Central time.
 
-## 2. Contract lookup
+## 2. The analog gauge
 
-`INSTRUMENTS` hardcodes `CON.F.US.EP.Z25` and friends, which expire. Add a contract search call to the gateway client and a `resolveContract(symbol)` server function that picks the front-month contract for ES/NQ/CL/GC/YM, cached in memory for the session. Bars and orders use the resolved id; the hardcoded id stays as fallback when credentials are absent.
+Rebuild `signal-gauge.tsx` as a real dial: a 180-degree arc with minor tick marks every 10 points and major ticks with BEAR / BULL end labels, a brass needle pivoting from a hub, the score in large mono type underneath, and the direction word in the signal colour.
 
-## 3. User-tunable indicator weights
+Below it, four LEDs — RSI, VWAP, MACD, Momentum — each lit green / red / grey straight from `signal.readings`, so the lights and the needle can never disagree. Volume z-score stays a text reading (weight 0, no LED).
 
-Weights already exist as a parameter in `computeSignal`. Expose them:
+## 3. Terminal layout
 
-- Four numeric weights (RSI, VWAP, MACD, momentum) stored per user alongside the existing risk settings.
-- Sliders on `/settings`, 0 to 2 in 0.25 steps, with a live preview of the resulting score.
-- Terminal and `getSignal` read the user's weights, so the gauge reflects their own model. Volume z-score stays informational at weight 0.
+`/terminal` is rebuilt to the panel arrangement:
 
-## 4. R-multiple
+- Top strip: gauge panel on the left, watchlist on the right — one cell per symbol with price, change and a brass top-border on the active one, clicking swaps the chart.
+- Chart panel: candlesticks with a VWAP overlay line, a separate volume histogram beneath, legend for VWAP and MACD histogram, and a timeframe button row in the footer.
+- Bottom grid: trade journal table (symbol, side tag, setup, entry, exit, size, P&L) on the left and an analytics sidebar on the right — net P&L, win rate, expectancy, max drawdown, then P&L-by-setup as horizontal bars.
 
-`pnl_r_multiple` exists but is never computed. Capture the stop distance at entry (from the bracket ticks and the instrument tick value) and, on close, set `pnl_r_multiple = pnl / risk_at_entry`. Analytics gains an average-R tile and R shows in the journal table.
+`/execution`, `/journal`, `/analytics` and `/settings` get the same token pass so the app reads as one instrument.
+
+Watchlist symbols move to the Topstep micro set shown in your mock — MES, MNQ, MYM, M2K, MCL — with the e-minis kept in the instrument list.
+
+## 4. Backend gaps (the four you picked)
+
+- **Signal readings at entry.** `submitOrder` opens the trade row before sending the order, computes the composite signal server-side, writes one `signals` row per indicator, and records the entry fill. New analytics panel: win rate and expectancy grouped by what each indicator read at entry.
+- **Contract lookup.** Add contract search to the gateway client and a `resolveContract(symbol)` server function that picks the front-month id, cached per session, replacing the hardcoded `CON.F.US.*.Z25` strings. Falls back to the hardcoded id when credentials are absent.
+- **Tunable weights.** Per-user weights for RSI / VWAP / MACD / momentum stored with risk settings, sliders on `/settings` (0-2 in 0.25 steps), applied by the gauge and by `getSignal`.
+- **R-multiple.** Capture stop distance at entry from the bracket ticks and tick value; on close set `pnl_r_multiple = pnl / risk_at_entry`. Average-R tile in analytics, R column in the journal.
 
 ## 5. Parity tests
 
-Add Vitest with a synthetic uptrend fixture matching your test data and assert:
-
-- RSI, MACD histogram, session VWAP, momentum and volume z-score values.
-- `ewm` recursion matches `adjust=False` seeding, and RSI reads 50 where undefined.
-- The composite score is exactly `(weighted_sum / total_weight) * 100` rounded to one decimal, with the ±20 direction thresholds.
-- Risk gate: daily loss limit, trade count, consecutive losses, position size, unattended block.
+Vitest over the pure modules with a synthetic uptrend fixture: RSI, MACD histogram, session VWAP, momentum, volume z-score, the `adjust=False` recursion, RSI reading 50 where undefined, the exact composite formula and ±20 thresholds, and every risk-gate branch including the unattended block.
 
 ## Technical notes
 
-- Database: add `weight_rsi`, `weight_vwap`, `weight_macd`, `weight_momentum` and `risk_at_entry` columns (defaults preserve current behaviour), with grants unchanged since RLS already scopes both tables to the owner.
-- Signal capture happens inside the authenticated server function, never from the browser, so the logged readings can't be forged.
-- Contract resolution failures degrade to the current hardcoded id rather than blocking the ticket.
-- Vitest runs against the pure modules only — no network, no database.
+- Your FastAPI endpoints map onto existing server functions — `/api/signal` is `getSignal`, `/api/risk/status` is `getRiskState`, `/api/orders` is `submitOrder`, the journal/analytics reads are `listTrades` plus the pure `analytics.ts`. No new HTTP layer; the risk check stays enforced server-side.
+- Live refresh stays polling (30s bars, faster gauge) rather than a websocket — same trade-off as your `/ws/signal` loop.
+- Migration adds `weight_rsi`, `weight_vwap`, `weight_macd`, `weight_momentum` to risk settings and `risk_at_entry` to trades, with defaults preserving current behaviour.
+- All colours stay semantic tokens, so nothing hardcodes hex in components.
