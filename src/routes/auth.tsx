@@ -37,6 +37,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [needsConfirm, setNeedsConfirm] = useState(false);
+
+  const callbackUrl = () =>
+    typeof window === "undefined" ? "" : `${window.location.origin}/auth-callback`;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -50,10 +54,49 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
+      if (error.message.toLowerCase().includes("not confirmed")) {
+        setNeedsConfirm(true);
+      }
       toast.error(error.message);
       return;
     }
     navigate({ to: "/terminal", replace: true });
+  }
+
+  async function resendConfirmation() {
+    if (!email) {
+      toast.error("Enter your email first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: callbackUrl() },
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("A fresh confirmation link is on its way.");
+  }
+
+  async function forgotPassword() {
+    if (!email) {
+      toast.error("Enter your email first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password reset email sent.");
   }
 
   async function signUp(e: React.FormEvent) {
@@ -63,7 +106,7 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: callbackUrl(),
         data: { display_name: displayName || email.split("@")[0] },
       },
     });
@@ -132,6 +175,27 @@ function AuthPage() {
                     {busy && <Loader2 className="size-4 animate-spin" />}
                     Sign in
                   </Button>
+                  {needsConfirm && (
+                    <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                      This account hasn't been confirmed yet.
+                      <button
+                        type="button"
+                        onClick={resendConfirmation}
+                        className="ml-1 underline underline-offset-4 text-foreground"
+                      >
+                        Resend confirmation email
+                      </button>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={forgotPassword}
+                      className="text-xs text-muted-foreground underline underline-offset-4"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
 

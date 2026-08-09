@@ -52,6 +52,14 @@ function LandingPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Auth links (confirmation, recovery) can land on the root URL; hand those
+    // off to the dedicated callback page instead of silently ignoring them.
+    const search = window.location.search;
+    const hash = window.location.hash;
+    if (/(access_token|error|error_code|token_hash|type=)/.test(search + hash)) {
+      window.location.replace(`/auth-callback${search}${hash}`);
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/terminal", replace: true });
     });
