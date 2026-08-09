@@ -5,13 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * "Panel" instrument design system — brass on graphite.
- * All colors are oklch tokens; components must never hardcode colors.
+ * AETHRA design system — near-black chassis, hot pink brand, electric purple
+ * intelligence, bright yellow accent. All colors are oklch tokens; components
+ * must never hardcode colors.
  */
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -62,76 +63,102 @@
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-highlight: var(--highlight);
-  --color-brass: var(--primary);
-  --color-brass-dim: var(--brass-dim);
+  --color-brand: var(--primary);
+  --color-brand-dim: var(--brand-dim);
   --color-etch: var(--etch);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-bullish: var(--profit);
+  --color-bearish: var(--loss);
+  --ease-swift: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-  --radius: 0.25rem;
+  --radius: 0.625rem;
 
-  /* Graphite chassis */
-  --background: oklch(0.152 0.004 250);
-  --foreground: oklch(0.917 0.008 85);
-  --surface: oklch(0.212 0.005 250);
-  --surface-raised: oklch(0.246 0.006 250);
-  --card: oklch(0.212 0.005 250);
-  --card-foreground: oklch(0.917 0.008 85);
-  --popover: oklch(0.19 0.005 250);
-  --popover-foreground: oklch(0.917 0.008 85);
+  /* Near-black chassis with a faint violet cast */
+  --background: oklch(0.135 0.012 300);
+  --foreground: oklch(0.965 0.004 300);
+  --surface: oklch(0.178 0.014 300);
+  --surface-raised: oklch(0.214 0.016 300);
+  --card: oklch(0.178 0.014 300);
+  --card-foreground: oklch(0.965 0.004 300);
+  --popover: oklch(0.163 0.014 300);
+  --popover-foreground: oklch(0.965 0.004 300);
 
-  /* Brass instrumentation */
-  --primary: oklch(0.652 0.106 71);
-  --primary-foreground: oklch(0.152 0.008 71);
-  --brass-dim: oklch(0.5 0.078 70);
-  --highlight: oklch(0.79 0.09 82);
+  /* Brand: hot pink */
+  --primary: oklch(0.655 0.247 4);
+  --primary-foreground: oklch(0.14 0.02 4);
+  --brand-dim: oklch(0.52 0.2 4);
+  --highlight: oklch(0.78 0.19 355);
 
-  --secondary: oklch(0.31 0.008 250);
-  --secondary-foreground: oklch(0.917 0.008 85);
-  --muted: oklch(0.246 0.006 250);
-  --muted-foreground: oklch(0.633 0.008 250);
-  --accent: oklch(0.31 0.014 71);
-  --accent-foreground: oklch(0.917 0.008 85);
-  --destructive: oklch(0.56 0.126 25);
-  --destructive-foreground: oklch(0.96 0.01 25);
-  --border: oklch(0.31 0.008 250);
-  --input: oklch(0.31 0.008 250);
-  --ring: oklch(0.652 0.106 71);
-  --etch: oklch(0.375 0.008 250);
+  /* Intelligence: electric purple */
+  --ai: oklch(0.63 0.242 302);
+  --ai-foreground: oklch(0.98 0.01 302);
 
-  --profit: oklch(0.6 0.09 155);
-  --loss: oklch(0.56 0.126 25);
-  --warning: oklch(0.72 0.12 78);
-  --warning-foreground: oklch(0.18 0.02 78);
-  --neutral-signal: oklch(0.633 0.008 250);
-  --grid: oklch(0.276 0.006 250);
+  /* Accent: bright yellow */
+  --accent-yellow: oklch(0.9 0.176 100);
 
-  --chart-1: oklch(0.652 0.106 71);
-  --chart-2: oklch(0.6 0.09 155);
-  --chart-3: oklch(0.56 0.126 25);
-  --chart-4: oklch(0.633 0.008 250);
-  --chart-5: oklch(0.79 0.09 82);
+  --secondary: oklch(0.256 0.018 300);
+  --secondary-foreground: oklch(0.965 0.004 300);
+  --muted: oklch(0.226 0.015 300);
+  --muted-foreground: oklch(0.68 0.016 300);
+  --accent: oklch(0.272 0.036 302);
+  --accent-foreground: oklch(0.965 0.004 300);
+  --destructive: oklch(0.6 0.212 22);
+  --destructive-foreground: oklch(0.98 0.01 22);
+  --border: oklch(0.276 0.018 300);
+  --input: oklch(0.276 0.018 300);
+  --ring: oklch(0.655 0.247 4);
+  --etch: oklch(0.36 0.02 300);
 
-  --sidebar: oklch(0.176 0.004 250);
-  --sidebar-foreground: oklch(0.86 0.008 85);
-  --sidebar-primary: oklch(0.652 0.106 71);
-  --sidebar-primary-foreground: oklch(0.152 0.008 71);
-  --sidebar-accent: oklch(0.276 0.012 71);
-  --sidebar-accent-foreground: oklch(0.917 0.008 85);
-  --sidebar-border: oklch(0.276 0.006 250);
-  --sidebar-ring: oklch(0.652 0.106 71);
+  /* Semantic market colors — deliberately distinct from the brand hues */
+  --profit: oklch(0.74 0.19 155);
+  --loss: oklch(0.63 0.216 22);
+  --warning: oklch(0.82 0.15 78);
+  --warning-foreground: oklch(0.18 0.03 78);
+  --neutral-signal: oklch(0.68 0.016 300);
+  --grid: oklch(0.245 0.016 300);
+
+  --chart-1: oklch(0.655 0.247 4);
+  --chart-2: oklch(0.63 0.242 302);
+  --chart-3: oklch(0.74 0.19 155);
+  --chart-4: oklch(0.9 0.176 100);
+  --chart-5: oklch(0.63 0.216 22);
+
+  --sidebar: oklch(0.155 0.014 300);
+  --sidebar-foreground: oklch(0.92 0.006 300);
+  --sidebar-primary: oklch(0.655 0.247 4);
+  --sidebar-primary-foreground: oklch(0.14 0.02 4);
+  --sidebar-accent: oklch(0.256 0.032 302);
+  --sidebar-accent-foreground: oklch(0.965 0.004 300);
+  --sidebar-border: oklch(0.245 0.016 300);
+  --sidebar-ring: oklch(0.655 0.247 4);
 
   /* Composed tokens */
-  --gradient-brass: linear-gradient(135deg, var(--brass-dim), var(--primary) 45%, var(--highlight));
+  --gradient-brand: linear-gradient(135deg, var(--primary), var(--ai) 78%);
+  --gradient-aurora: linear-gradient(
+    120deg,
+    color-mix(in oklab, var(--primary) 82%, transparent),
+    color-mix(in oklab, var(--ai) 88%, transparent) 55%,
+    color-mix(in oklab, var(--accent-yellow) 70%, transparent)
+  );
   --gradient-surface: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--surface-raised) 70%, transparent),
+    color-mix(in oklab, var(--surface-raised) 65%, transparent),
     color-mix(in oklab, var(--surface) 96%, transparent)
   );
-  --glow-brass: 0 0 0 1px color-mix(in oklab, var(--primary) 34%, transparent),
-    0 0 24px -8px color-mix(in oklab, var(--primary) 45%, transparent);
-  --shadow-panel: 0 1px 0 0 color-mix(in oklab, var(--foreground) 5%, transparent) inset,
-    0 -1px 0 0 oklch(0 0 0 / 0.5) inset, 0 16px 40px -32px oklch(0 0 0 / 0.9);
+  --glow-brand: 0 0 0 1px color-mix(in oklab, var(--primary) 32%, transparent),
+    0 0 28px -10px color-mix(in oklab, var(--primary) 60%, transparent);
+  --glow-ai: 0 0 0 1px color-mix(in oklab, var(--ai) 34%, transparent),
+    0 0 28px -10px color-mix(in oklab, var(--ai) 60%, transparent);
+  --shadow-panel: 0 1px 0 0 color-mix(in oklab, var(--foreground) 6%, transparent) inset,
+    0 -1px 0 0 oklch(0 0 0 / 0.45) inset, 0 18px 44px -34px oklch(0 0 0 / 0.9);
+
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 360ms;
 }
 
 /* Single dark identity: the panel theme is always dark. */
@@ -162,7 +189,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -179,18 +206,32 @@
   border-radius: var(--radius-md);
   background-color: var(--color-card);
   background-image: var(--gradient-surface);
-  box-shadow: var(--glow-brass), var(--shadow-panel);
+  box-shadow: var(--glow-brand), var(--shadow-panel);
 }
 
-/* Kept for backwards compatibility with existing routes: brass, not mint. */
+@utility panel-ai {
+  border: 1px solid color-mix(in oklab, var(--color-ai) 34%, transparent);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  background-image: var(--gradient-surface);
+  box-shadow: var(--glow-ai), var(--shadow-panel);
+}
+
+/* Kept for backwards compatibility with existing routes. */
 @utility text-gradient-mint {
-  background-image: var(--gradient-brass);
+  background-image: var(--gradient-brand);
   background-clip: text;
   color: transparent;
 }
 
 @utility text-gradient-brass {
-  background-image: var(--gradient-brass);
+  background-image: var(--gradient-brand);
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-brand {
+  background-image: var(--gradient-brand);
   background-clip: text;
   color: transparent;
 }
@@ -217,6 +258,32 @@
   border-radius: 9999px;
   background: radial-gradient(circle at 35% 30%, var(--color-etch), oklch(0 0 0 / 0.85));
   box-shadow: 0 0 0 1px oklch(0 0 0 / 0.5);
+}
+
+@utility flash-up {
+  animation: aethra-flash-up var(--motion-slow) var(--ease-swift);
+}
+
+@utility flash-down {
+  animation: aethra-flash-down var(--motion-slow) var(--ease-swift);
+}
+
+@keyframes aethra-flash-up {
+  from {
+    background-color: color-mix(in oklab, var(--profit) 28%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes aethra-flash-down {
+  from {
+    background-color: color-mix(in oklab, var(--loss) 28%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
 }
 
 @utility grid-backdrop {
