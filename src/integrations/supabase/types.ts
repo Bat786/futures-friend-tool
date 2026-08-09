@@ -91,6 +91,7 @@ export type Database = {
           net_pnl: number
           summary_date: string
           trades_count: number
+          updated_at: string
           user_id: string
           win_count: number
         }
@@ -104,6 +105,7 @@ export type Database = {
           net_pnl?: number
           summary_date: string
           trades_count?: number
+          updated_at?: string
           user_id: string
           win_count?: number
         }
@@ -117,6 +119,7 @@ export type Database = {
           net_pnl?: number
           summary_date?: string
           trades_count?: number
+          updated_at?: string
           user_id?: string
           win_count?: number
         }
@@ -288,6 +291,7 @@ export type Database = {
           stop_price: number | null
           symbol: string
           target_price: number | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -313,6 +317,7 @@ export type Database = {
           stop_price?: number | null
           symbol: string
           target_price?: number | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -338,6 +343,7 @@ export type Database = {
           stop_price?: number | null
           symbol?: string
           target_price?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

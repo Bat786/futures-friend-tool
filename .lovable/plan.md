@@ -1,55 +1,48 @@
-# Futures Signal & Execution Terminal — updated plan
+# Signal engine alignment + terminal UI
 
-The approved plan stands. This revision folds in the journal/analytics/risk Python modules and `schema.sql` you just sent, and records what already exists in the project.
+Your `indicators.py` / `signal_engine.py` / `bridge.py` are the reference. The TypeScript versions already in the project were written before I saw them and differ in two ways that matter, so step 1 is making them match your semantics exactly. Then the UI that renders them.
 
-## Already done in this session
+## 1. Match the reference indicator math
 
-- Lovable Cloud enabled; email/password + Google sign-in configured.
-- Database created: `profiles`, `broker_accounts`, `risk_settings`, `trades`, `signals`, `fills`, `daily_summary`, `bar_cache`. Every table is private to its owner (`auth.uid()`); a signup trigger creates the profile and default risk settings.
-- Dark terminal design system (near-black surfaces, mono numerics, green profit / red loss / amber risk tokens).
-- `lightweight-charts` installed; instrument list, timeframes and a deterministic simulated bar feed in place so the chart works before broker credentials exist.
+`src/lib/indicators.ts` currently uses hand-written Wilder smoothing and a simple-average relative volume. Bring it in line with the Python:
 
-## Schema deltas from your `schema.sql`
+- RSI: use the same `ewm(alpha=1/period, adjust=False)` recursion, and return 50 (neutral) where undefined instead of null, matching your `.fillna(50)`.
+- MACD: your version seeds EMAs from the first bar with `adjust=False` and emits values from bar 0; mine suppresses output until `period` bars. Switch to your behaviour so the histogram matches value-for-value.
+- Volume z-score: replace my `relativeVolume` (ratio to a 20-bar mean) with `volume_zscore` (rolling mean and standard deviation), since that is what your engine exposes.
+- VWAP and momentum already match: session reset on calendar day, and pct change over `period` bars as a percentage.
 
-One follow-up migration to bring the tables fully in line:
+## 2. Rewrite the composite score as a weighted vote
 
-- CHECK constraints: `trades.side` in (buy, sell), `trades.status` in (open, closed, cancelled), `fills.fill_type` in (entry, exit, partial_entry, partial_exit), `signals.direction` in (bullish, bearish, neutral).
-- `trades.updated_at` plus a `set_updated_at` trigger; `daily_summary.updated_at`.
-- Indexes on `trades(user_id, setup_tag)`, `trades(user_id, status)`, `signals(indicator_name)`.
+My current `src/lib/signal.ts` maps each indicator onto a continuous -100..100 score and scales the result by relative volume. That is not what your engine does. Replace it with your model exactly:
 
-Two intentional differences: ids stay `uuid` and ownership is `user_id uuid` referencing the auth user, because row-level security keys off the signed-in user rather than a `BIGINT user_id = 1` placeholder.
+- Each indicator is classified to bullish / neutral / bearish by the same thresholds: RSI >= 60 or <= 40, price vs VWAP, MACD histogram sign, momentum against a 0.05 threshold.
+- Direction score of +1 / 0 / -1, multiplied by a per-indicator weight.
+- `score = (weighted_sum / total_weight) * 100`, rounded to one decimal.
+- Composite direction: bullish at >= 20, bearish at <= -20, otherwise neutral.
+- Weights default to 1.0 each and stay a parameter, so per-user weighting can be added later without touching the engine.
 
-## Ported modules (Python to TypeScript)
+Volume z-score is kept as a displayed reading with weight 0 (informational, no vote) unless you want it voting - say the word and I will give it a threshold and a weight.
 
-| Your module | Becomes |
-|---|---|
-| `config.py` / `client.py` | `src/lib/topstepx.server.ts` — base URL + credentials from server env, `loginKey`/`validate` with token caching, `placeOrder` with stop-loss/take-profit brackets, `cancelOrder`, `modifyOrder`, `searchOrders`, `searchPositions`, `closeContract`, `retrieveBars`, retry/backoff on rate limits |
-| `enums.py` | `src/lib/broker-enums.ts` — OrderType 1/2/4/5/6/7, OrderSide 0/1, exact spec values |
-| `risk.py` | `src/lib/risk.ts` — `RiskLimits`, `DailyState`, `checkPreTrade` returning a human-readable block reason, `recordTradeResult` |
-| `journal.py` | `src/lib/journal.functions.ts` — `openTrade`, `closeTrade` (computes net P&L and R multiple from the entry stop distance), `recordFill`, `recordSignal`, `getTrades` |
-| `get_daily_state()` | `getDailyState` server function — rebuilds today's realized P&L, trade count and loss streak from closed trades, so limits survive a reload. Runs on every page load of the execution screen, not just at session start |
-| `analytics.py` | `src/lib/analytics.ts` — `winRate`, `avgWinLoss`, `expectancy`, `pnlBySetup`, `pnlByHourOfDay`, `equityCurve`, `maxDrawdown`, `summary` |
+## 3. Bridge equivalent
 
-Two gaps from your README get closed here: `pnl_r_multiple` is computed on close from the stop captured at entry, and `user_id` comes from the authenticated session instead of a hardcoded 1.
+`bridge.py`'s job is already covered by `getBars` in `src/lib/broker.functions.ts`: it fetches from the gateway, maps `t/o/h/l/c/v` onto our bar shape in one place, and falls back to simulated bars when credentials are absent. I will add a `getSignal` server function next to it that fetches bars and returns the composite signal, so the gauge has a single call - the direct analogue of `fetch_signal()`.
 
-## Screens
+## 4. Terminal UI (the missing pages)
 
-- `/` — public landing: what the terminal does, and the supervision rules (attended only, no VPS, no HFT).
-- `/auth` — sign in / sign up, email + Google.
-- `/terminal` — candlestick chart with VWAP/EMA overlays, indicator panel (RSI, VWAP, MACD, momentum, volume), and the composite gauge/needle.
-- `/journal` — trade list, manual open/close, fills and entry signals per trade, setup tags and notes.
-- `/analytics` — summary header (trade count, win rate, expectancy, net P&L, max drawdown), equity curve, P&L by setup, P&L by hour of day, live vs backtest toggle.
-- `/execution` — account/positions panel, order ticket with bracket ticks, live pre-trade risk readout (today's P&L vs limit, trades used, loss streak), and the flatten-all kill switch. Orders are never auto-fired: each send is an explicit click, and an idle detector disarms trading when the tab is unattended.
-- `/settings` — risk limits and broker account setup.
+The app currently has no routes beyond the placeholder index, which is why the nav links do not resolve yet. To build:
 
-## Order of work
+- `/auth` - email/password plus Google sign-in.
+- `/` - replace the placeholder with a short landing page that sends signed-in users to the terminal.
+- `/terminal` - instrument and timeframe selector, candlestick chart with VWAP overlay, the gauge driven by the composite score, and a readings table showing each indicator's value, direction and weight so the reason behind the needle is visible.
+- `/execution` - account picker, order ticket with bracket ticks, the risk gate verdict shown before the button is enabled, an attended-session heartbeat, and a flatten-all kill switch.
+- `/journal` - trade list with manual entry and edit, setup tags and notes.
+- `/analytics` - summary tiles, equity curve, P&L by setup and by hour of day.
+- `/settings` - risk limits and arm/disarm for the kill switch.
 
-1. Follow-up schema migration (constraints, triggers, indexes).
-2. Indicators, composite signal, gauge, chart — `/terminal`.
-3. Journal + analytics — `/journal`, `/analytics`.
-4. TopstepX client, risk gate, order ticket, kill switch — `/execution`, demo gateway by default.
-5. Backtesting and the news layer afterwards, as in the original plan.
+## Technical notes
 
-## Credentials
-
-`TOPSTEPX_USERNAME` and `TOPSTEPX_API_KEY` are requested as secrets when the execution layer lands, read only inside server handlers. `TOPSTEPX_BASE_URL` defaults to the demo gateway (`gateway-api-demo.s2f.projectx.com/api`); switching to live is a deliberate setting change.
+- Indicators, signal engine, risk rules and analytics stay pure functions with no I/O, so they run unchanged in the browser, in server functions, and later in a backtest loop.
+- Same caveat as your note about recomputing the whole window per bar: these are full-window recomputes, fine for polling every few seconds. If tick-level latency ever matters, incremental versions slot in behind the same signatures.
+- Chart rendering is client-only (lightweight-charts touches the DOM) and loads after hydration.
+- Broker credentials (`TOPSTEPX_USERNAME`, `TOPSTEPX_API_KEY`, `TOPSTEPX_BASE_URL`) are read server-side only and default to the demo gateway. Until they are set, the terminal runs on deterministic simulated bars so the whole signal path is testable.
+- Execution stays supervised: the risk gate is enforced server-side as well as in the UI, and an unattended tab blocks order submission rather than trading unattended.
