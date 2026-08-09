@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { Activity, CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,15 +30,34 @@ export const Route = createFileRoute("/auth-callback")({
   component: AuthCallbackPage,
 });
 
+const supportedConfirmationTypes = new Set<EmailOtpType>([
+  "signup",
+  "invite",
+  "magiclink",
+  "email",
+  "email_change",
+]);
+
 function readAuthParams() {
-  if (typeof window === "undefined") return { error: null as string | null };
+  if (typeof window === "undefined") {
+    return { error: null as string | null, tokenHash: null as string | null, type: null as EmailOtpType | null };
+  }
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const get = (key: string) => query.get(key) ?? hash.get(key);
   const error = get("error") ?? get("error_code");
   const description = get("error_description");
-  if (!error) return { error: null };
-  return { error: description ? description.replace(/\+/g, " ") : error };
+  const tokenHash = get("token_hash");
+  const rawType = get("type");
+  const type = rawType && supportedConfirmationTypes.has(rawType as EmailOtpType)
+    ? (rawType as EmailOtpType)
+    : null;
+
+  return {
+    error: error ? (description ? description.replace(/\+/g, " ") : error) : null,
+    tokenHash,
+    type,
+  };
 }
 
 function AuthCallbackPage() {
@@ -48,7 +68,7 @@ function AuthCallbackPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const { error } = readAuthParams();
+    const { error, tokenHash, type } = readAuthParams();
     if (error) {
       setStatus("failed");
       setMessage(error);
@@ -67,9 +87,32 @@ function AuthCallbackPage() {
       if (session) finish();
     });
 
-    supabase.auth.getSession().then(({ data }) => {
+    const completeConfirmation = async () => {
+      if (tokenHash) {
+        if (!type) {
+          setStatus("failed");
+          setMessage("This confirmation link has an unsupported or missing verification type.");
+          return;
+        }
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        });
+        if (verifyError) {
+          setStatus("failed");
+          setMessage(verifyError.message);
+          return;
+        }
+        finish();
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
       if (data.session) finish();
-    });
+    };
+
+    void completeConfirmation();
 
     const timer = setTimeout(() => {
       if (!done) {
