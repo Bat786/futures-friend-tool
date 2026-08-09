@@ -12,15 +12,15 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set a new password — AETHRA" },
+      { title: "Set a new password — AETHRON" },
       {
         name: "description",
-        content: "Choose a new password for your AETHRA futures terminal account.",
+        content: "Choose a new password for your AETHRON futures terminal account.",
       },
-      { property: "og:title", content: "Set a new password — AETHRA" },
+      { property: "og:title", content: "Set a new password — AETHRON" },
       {
         property: "og:description",
-        content: "Choose a new password for your AETHRA account.",
+        content: "Choose a new password for your AETHRON account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -35,13 +35,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/workspace")({
   head: () => ({
     meta: [
-      { title: "Workspace — AETHRA modular trading command center" },
+      { title: "AETHRON Terminal — modular trading command center" },
       {
         name: "description",
         content:
           "Arrange chart, signal, positions, risk, scanner, news and AI panels into a resizable workspace and save layouts per strategy.",
       },
-      { property: "og:title", content: "Workspace — AETHRA modular trading command center" },
+      { property: "og:title", content: "AETHRON Terminal — modular trading command center" },
       {
         property: "og:description",
         content: "A drag-and-drop, resizable futures trading workspace with saved layout presets.",
