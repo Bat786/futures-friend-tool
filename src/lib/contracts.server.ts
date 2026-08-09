@@ -1,5 +1,5 @@
 import { instrumentBySymbol } from "./market";
-import { readConfig, searchContracts, type GatewayContract } from "./topstepx.server";
+import { readConfig, searchContracts, type BrokerConfig, type GatewayContract } from "./topstepx.server";
 
 type Cached = { contractId: string; expiresAt: number };
 const cache = new Map<string, Cached>();
@@ -34,19 +34,24 @@ function pickFrontMonth(root: string, contracts: GatewayContract[]): string | nu
  * Falls back to the hardcoded id when credentials are absent or lookup fails,
  * so charting and simulation keep working offline.
  */
-export async function resolveContractId(symbol: string): Promise<string> {
+export async function resolveContractId(
+  symbol: string,
+  config?: BrokerConfig | null,
+): Promise<string> {
   const inst = instrumentBySymbol(symbol);
-  const cached = cache.get(inst.root);
-  if (cached && cached.expiresAt > Date.now()) return cached.contractId;
-
-  const cfg = readConfig();
+  const cfg = config === undefined ? readConfig() : config;
   if (!cfg) return inst.contractId;
+
+  // Cache per gateway, so demo and live ids never bleed into each other.
+  const cacheKey = `${cfg.baseUrl}|${inst.root}`;
+  const cached = cache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.contractId;
 
   try {
     const res = await searchContracts(cfg, inst.root);
     const id = pickFrontMonth(inst.root, res.contracts ?? []);
     if (!id) return inst.contractId;
-    cache.set(inst.root, { contractId: id, expiresAt: Date.now() + TTL_MS });
+    cache.set(cacheKey, { contractId: id, expiresAt: Date.now() + TTL_MS });
     return id;
   } catch {
     return inst.contractId;
