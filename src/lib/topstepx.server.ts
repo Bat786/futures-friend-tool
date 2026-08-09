@@ -37,11 +37,9 @@ async function request<T>(
   };
   if (init.token) headers["Authorization"] = `Bearer ${init.token}`;
 
-  const res = await fetch(`${cfg.baseUrl}${path}`, {
-    method: init.method,
-    headers,
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
-  });
+  const requestInit: RequestInit = { method: init.method, headers };
+  if (init.body !== undefined) requestInit.body = JSON.stringify(init.body);
+  const res = await fetch(`${cfg.baseUrl}${path}`, requestInit);
 
   // Rate limited or transient upstream failure — back off and retry a few times.
   if ((res.status === 429 || res.status >= 500) && attempt < 3) {
