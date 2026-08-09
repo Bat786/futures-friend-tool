@@ -1,4 +1,5 @@
 import {
+  cancelOrder as cancelOrderRaw,
   closeContract as closeContractRaw,
   placeOrder as placeOrderRaw,
   searchAccounts as searchAccountsRaw,
