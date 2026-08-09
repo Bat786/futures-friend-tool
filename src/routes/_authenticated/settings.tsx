@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { getRiskState, updateRiskSettings } from "@/lib/journal.functions";
@@ -48,6 +49,10 @@ function SettingsPage() {
     default_stop_ticks: 20,
     default_target_ticks: 40,
     kill_switch_armed: false,
+    weight_rsi: 1,
+    weight_vwap: 1,
+    weight_macd: 1,
+    weight_momentum: 1,
   });
 
   useEffect(() => {
@@ -60,6 +65,10 @@ function SettingsPage() {
       default_stop_ticks: risk.data.defaults.defaultStopTicks,
       default_target_ticks: risk.data.defaults.defaultTargetTicks,
       kill_switch_armed: risk.data.limits.killSwitchArmed,
+      weight_rsi: risk.data.weights.rsi,
+      weight_vwap: risk.data.weights.vwap,
+      weight_macd: risk.data.weights.macd,
+      weight_momentum: risk.data.weights.momentum,
     });
   }, [risk.data]);
 
@@ -145,6 +154,42 @@ function SettingsPage() {
         </Card>
 
         <div className="space-y-4">
+          <Card className="panel">
+            <CardHeader>
+              <CardTitle className="font-display text-base">Signal weights</CardTitle>
+              <CardDescription>
+                How much each indicator's vote counts toward the composite gauge. Set a weight to 0 to mute it.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {(
+                [
+                  ["weight_rsi", "RSI"],
+                  ["weight_vwap", "VWAP"],
+                  ["weight_macd", "MACD"],
+                  ["weight_momentum", "Momentum"],
+                ] as const
+              ).map(([key, label]) => (
+                <div key={key} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="etch-label">{label}</Label>
+                    <span className="tabular text-xs text-primary">{form[key].toFixed(1)}</span>
+                  </div>
+                  <Slider
+                    value={[form[key]]}
+                    min={0}
+                    max={3}
+                    step={0.1}
+                    onValueChange={([v]) => setForm({ ...form, [key]: v ?? 0 })}
+                  />
+                </div>
+              ))}
+              <Button onClick={() => save.mutate()} disabled={save.isPending} variant="outline" className="w-full">
+                Save weights
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="panel">
             <CardHeader>
               <CardTitle className="font-display text-base">Broker connection</CardTitle>

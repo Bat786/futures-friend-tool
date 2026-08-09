@@ -4,15 +4,17 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SignalGauge } from "@/components/signal-gauge";
+import { WatchlistStrip } from "@/components/watchlist-strip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "@tanstack/react-router";
 import { getBars } from "@/lib/broker.functions";
-import { INSTRUMENTS, TIMEFRAMES, instrumentBySymbol, type Timeframe } from "@/lib/market";
+import { getRiskState } from "@/lib/journal.functions";
+import { TIMEFRAMES, instrumentBySymbol, type Timeframe } from "@/lib/market";
 import { vwap } from "@/lib/indicators";
-import { computeSignal } from "@/lib/signal";
+import { computeSignal, DEFAULT_WEIGHTS } from "@/lib/signal";
 import { cn } from "@/lib/utils";
 
 const PriceChart = lazy(() => import("@/components/price-chart"));
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/terminal")({
 });
 
 function TerminalPage() {
-  const [symbol, setSymbol] = useState("ES");
+  const [symbol, setSymbol] = useState("MES");
   const [timeframe, setTimeframe] = useState<Timeframe>("5m");
   const inst = instrumentBySymbol(symbol);
 
@@ -49,9 +51,12 @@ function TerminalPage() {
     refetchInterval: 30_000,
   });
 
+  const risk = useQuery({ queryKey: ["risk-state"], queryFn: () => getRiskState() });
+  const weights = risk.data?.weights ?? DEFAULT_WEIGHTS;
+
   const bars = query.data?.bars ?? [];
   const vwapSeries = useMemo(() => vwap(bars), [bars]);
-  const signal = useMemo(() => computeSignal(bars, timeframe), [bars, timeframe]);
+  const signal = useMemo(() => computeSignal(bars, timeframe, weights), [bars, timeframe, weights]);
 
   const lastBar = bars[bars.length - 1];
   const prevBar = bars[bars.length - 2];
@@ -69,23 +74,7 @@ function TerminalPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-md border border-border bg-card p-0.5">
-            {INSTRUMENTS.map((i) => (
-              <button
-                key={i.symbol}
-                onClick={() => setSymbol(i.symbol)}
-                className={cn(
-                  "rounded-sm px-3 py-1.5 font-mono text-xs transition-colors",
-                  i.symbol === symbol
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                )}
-              >
-                {i.symbol}
-              </button>
-            ))}
-          </div>
-          <div className="flex rounded-md border border-border bg-card p-0.5">
+          <div className="flex rounded-sm border border-border bg-card p-0.5">
             {TIMEFRAMES.map((t) => (
               <button
                 key={t.value}
@@ -116,6 +105,8 @@ function TerminalPage() {
           </span>
         </div>
       )}
+
+      <WatchlistStrip symbol={symbol} timeframe={timeframe} onSelect={setSymbol} />
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <Card className="panel">

@@ -24,31 +24,31 @@ export default function PriceChart({ bars, vwapSeries, precision }: Props) {
       const chart = createChart(containerRef.current, {
         layout: {
           background: { type: ColorType.Solid, color: "transparent" },
-          textColor: "rgba(148,163,184,0.9)",
+          textColor: "rgba(160,158,150,0.9)",
           fontFamily: "ui-monospace, SFMono-Regular, monospace",
         },
         grid: {
-          vertLines: { color: "rgba(148,163,184,0.08)" },
-          horzLines: { color: "rgba(148,163,184,0.08)" },
+          vertLines: { color: "rgba(180,175,165,0.06)" },
+          horzLines: { color: "rgba(180,175,165,0.06)" },
         },
-        rightPriceScale: { borderColor: "rgba(148,163,184,0.15)" },
-        timeScale: { borderColor: "rgba(148,163,184,0.15)", timeVisible: true, secondsVisible: false },
+        rightPriceScale: { borderColor: "rgba(192,138,62,0.28)" },
+        timeScale: { borderColor: "rgba(192,138,62,0.28)", timeVisible: true, secondsVisible: false },
         crosshair: { mode: 0 },
         height: 420,
         autoSize: true,
       });
 
       const candles = chart.addSeries(CandlestickSeries, {
-        upColor: "#22c55e",
-        downColor: "#ef4444",
-        borderUpColor: "#22c55e",
-        borderDownColor: "#ef4444",
-        wickUpColor: "#22c55e",
-        wickDownColor: "#ef4444",
+        upColor: "#4A9B6E",
+        downColor: "#B5504A",
+        borderUpColor: "#4A9B6E",
+        borderDownColor: "#B5504A",
+        wickUpColor: "#4A9B6E",
+        wickDownColor: "#B5504A",
         priceFormat: { type: "price", precision, minMove: 1 / 10 ** precision },
       });
       const vwap = chart.addSeries(LineSeries, {
-        color: "#eab308",
+        color: "#C08A3E",
         lineWidth: 1,
         priceLineVisible: false,
         lastValueVisible: false,

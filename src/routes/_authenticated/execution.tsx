@@ -41,7 +41,8 @@ export const Route = createFileRoute("/_authenticated/execution")({
 
 function ExecutionPage() {
   const qc = useQueryClient();
-  const [symbol, setSymbol] = useState("ES");
+  const [symbol, setSymbol] = useState("MES");
+  const [setupTag, setSetupTag] = useState("");
   const [orderType, setOrderType] = useState<number>(OrderType.MARKET);
   const [side, setSide] = useState<number>(OrderSide.BUY);
   const [size, setSize] = useState(1);
@@ -96,6 +97,8 @@ function ExecutionPage() {
           takeProfitTicks: risk.data?.defaults.defaultTargetTicks ?? 40,
           supervised,
           customTag: null,
+          timeframe: "5m" as const,
+          setupTag: setupTag.trim() || null,
         },
       }),
     onSuccess: (res) => {
@@ -105,6 +108,7 @@ function ExecutionPage() {
       }
       toast.success(`Order sent${res.orderId ? ` · #${res.orderId}` : ""}`);
       void qc.invalidateQueries({ queryKey: ["positions"] });
+      void qc.invalidateQueries({ queryKey: ["trades"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -254,6 +258,19 @@ function ExecutionPage() {
             )}
 
             <Separator />
+
+            <div className="space-y-2">
+              <Label htmlFor="setup">Setup tag</Label>
+              <Input
+                id="setup"
+                placeholder="e.g. VWAP reclaim"
+                value={setupTag}
+                onChange={(e) => setSetupTag(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Logged with the live indicator readings, so you can later see which signals preceded winners.
+              </p>
+            </div>
 
             <div
               className={cn(

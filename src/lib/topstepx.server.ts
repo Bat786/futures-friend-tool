@@ -191,3 +191,21 @@ export function timeframeToUnit(tf: string): { unit: number; unitNumber: number 
       return { unit: 2, unitNumber: 5 };
   }
 }
+/** Contract discovery — used to resolve a root like "MES" to the front month. */
+export type GatewayContract = {
+  id?: string;
+  name?: string;
+  description?: string;
+  tickSize?: number;
+  tickValue?: number;
+  activeContract?: boolean;
+};
+
+export async function searchContracts(cfg: BrokerConfig, searchText: string, live = false) {
+  const token = await getToken(cfg);
+  return request<{ contracts?: GatewayContract[] }>(cfg, "/Contract/search", {
+    method: "POST",
+    token,
+    body: { searchText, live },
+  });
+}

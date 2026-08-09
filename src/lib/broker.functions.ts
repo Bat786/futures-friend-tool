@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { instrumentBySymbol, type Timeframe } from "./market";
 import { fetchBars } from "./bars.server";
-import { computeSignal } from "./signal";
+import { computeSignal, DEFAULT_WEIGHTS, type SignalWeights } from "./signal";
+import { resolveContractId } from "./contracts.server";
 import {
   readConfig,
   isDemo,
@@ -126,6 +127,8 @@ export const submitOrder = createServerFn({ method: "POST" })
         takeProfitTicks: z.number().int().min(0).max(4000).nullable().optional(),
         supervised: z.boolean(),
         customTag: z.string().max(60).nullable().optional(),
+        timeframe: z.enum(["1m", "5m", "15m", "1h", "1d"]).default("5m"),
+        setupTag: z.string().max(60).nullable().optional(),
       })
       .parse(input),
   )
@@ -171,10 +174,17 @@ export const submitOrder = createServerFn({ method: "POST" })
     }
 
     const inst = instrumentBySymbol(data.symbol);
+    const contractId = await resolveContractId(data.symbol);
+    const weights: SignalWeights = {
+      rsi: Number(settings?.weight_rsi ?? DEFAULT_WEIGHTS.rsi),
+      vwap: Number(settings?.weight_vwap ?? DEFAULT_WEIGHTS.vwap),
+      macd: Number(settings?.weight_macd ?? DEFAULT_WEIGHTS.macd),
+      momentum: Number(settings?.weight_momentum ?? DEFAULT_WEIGHTS.momentum),
+    };
     try {
       const res = await placeOrder(cfg, {
         accountId: data.accountId,
-        contractId: inst.contractId,
+        contractId,
         type: data.type,
         side: data.side,
         size: data.size,
@@ -187,7 +197,87 @@ export const submitOrder = createServerFn({ method: "POST" })
       if (res.success === false) {
         return { ok: false as const, blocked: false as const, reason: res.errorMessage ?? "Order rejected by broker." };
       }
-      return { ok: true as const, orderId: res.orderId ?? null };
+
+      // Snapshot the signal that preceded this entry so the journal can later
+      // measure which readings actually preceded winners.
+      let tradeId: string | null = null;
+      try {
+        const barsResult = await fetchBars(data.symbol, data.timeframe as Timeframe, 300);
+        const signal = computeSignal(barsResult.bars, data.timeframe as Timeframe, weights);
+        const entryPrice = data.limitPrice ?? data.stopPrice ?? signal.lastPrice ?? null;
+        const side = data.side === 0 ? "buy" : "sell";
+        const stopPrice =
+          entryPrice !== null && data.stopLossTicks
+            ? side === "buy"
+              ? entryPrice - data.stopLossTicks * inst.tickSize
+              : entryPrice + data.stopLossTicks * inst.tickSize
+            : null;
+        const targetPrice =
+          entryPrice !== null && data.takeProfitTicks
+            ? side === "buy"
+              ? entryPrice + data.takeProfitTicks * inst.tickSize
+              : entryPrice - data.takeProfitTicks * inst.tickSize
+            : null;
+        const riskAtEntry =
+          entryPrice !== null && stopPrice !== null
+            ? Number(((Math.abs(entryPrice - stopPrice) / inst.tickSize) * inst.tickValue * data.size).toFixed(2))
+            : null;
+
+        const { data: trade } = await supabase
+          .from("trades")
+          .insert({
+            user_id: userId,
+            account_id: String(data.accountId),
+            contract_id: contractId,
+            symbol: data.symbol,
+            side,
+            size: data.size,
+            entry_price: entryPrice,
+            entry_time: new Date().toISOString(),
+            stop_price: stopPrice,
+            target_price: targetPrice,
+            risk_at_entry: riskAtEntry,
+            setup_tag: data.setupTag ?? null,
+            custom_tag: data.customTag ?? null,
+            order_ids: res.orderId ? [String(res.orderId)] : [],
+            status: "open",
+          })
+          .select("id")
+          .single();
+
+        tradeId = trade?.id ?? null;
+        const savedTradeId = tradeId;
+        if (savedTradeId) {
+          const rows = signal.readings.map((r) => ({
+            user_id: userId,
+            trade_id: savedTradeId,
+            indicator_name: r.name,
+            value_at_entry: Number.isFinite(r.value) ? r.value : null,
+            direction: r.direction,
+            timeframe: data.timeframe,
+          })) as {
+            user_id: string;
+            trade_id: string;
+            indicator_name: string;
+            value_at_entry: number | null;
+            direction: string;
+            timeframe: string;
+          }[];
+          rows.push({
+            user_id: userId,
+            trade_id: savedTradeId,
+            indicator_name: "Composite",
+            value_at_entry: signal.score,
+            direction: signal.direction,
+            timeframe: data.timeframe,
+          });
+          await supabase.from("signals").insert(rows);
+        }
+      } catch {
+        // Journaling must never fail an order that the broker already accepted.
+      }
+
+      return { ok: true as const, orderId: res.orderId ?? null, tradeId };
     } catch (error) {
       return {
         ok: false as const,

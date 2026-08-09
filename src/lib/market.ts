@@ -24,15 +24,29 @@ export type Instrument = {
   tickSize: number;
   tickValue: number;
   basePrice: number;
+  /** ProjectX contract root used for front-month lookup, e.g. "MES". */
+  root: string;
+  /** Micro contracts are the default for funded-account risk sizing. */
+  micro: boolean;
 };
 
 export const INSTRUMENTS: Instrument[] = [
-  { contractId: "CON.F.US.EP.Z25", symbol: "ES", name: "E-mini S&P 500", tickSize: 0.25, tickValue: 12.5, basePrice: 5620 },
-  { contractId: "CON.F.US.ENQ.Z25", symbol: "NQ", name: "E-mini Nasdaq 100", tickSize: 0.25, tickValue: 5, basePrice: 20100 },
-  { contractId: "CON.F.US.CL.Z25", symbol: "CL", name: "Crude Oil", tickSize: 0.01, tickValue: 10, basePrice: 74.2 },
-  { contractId: "CON.F.US.GC.Z25", symbol: "GC", name: "Gold", tickSize: 0.1, tickValue: 10, basePrice: 2410 },
-  { contractId: "CON.F.US.YM.Z25", symbol: "YM", name: "E-mini Dow", tickSize: 1, tickValue: 5, basePrice: 40850 },
+  // Micros first — the default sizing for Topstep evaluation and funded accounts.
+  { contractId: "CON.F.US.MES.Z25", root: "MES", micro: true, symbol: "MES", name: "Micro E-mini S&P 500", tickSize: 0.25, tickValue: 1.25, basePrice: 5620 },
+  { contractId: "CON.F.US.MNQ.Z25", root: "MNQ", micro: true, symbol: "MNQ", name: "Micro E-mini Nasdaq 100", tickSize: 0.25, tickValue: 0.5, basePrice: 20100 },
+  { contractId: "CON.F.US.MYM.Z25", root: "MYM", micro: true, symbol: "MYM", name: "Micro E-mini Dow", tickSize: 1, tickValue: 0.5, basePrice: 40850 },
+  { contractId: "CON.F.US.M2K.Z25", root: "M2K", micro: true, symbol: "M2K", name: "Micro E-mini Russell 2000", tickSize: 0.1, tickValue: 0.5, basePrice: 2180 },
+  { contractId: "CON.F.US.MCL.Z25", root: "MCL", micro: true, symbol: "MCL", name: "Micro Crude Oil", tickSize: 0.01, tickValue: 1, basePrice: 74.2 },
+  { contractId: "CON.F.US.MGC.Z25", root: "MGC", micro: true, symbol: "MGC", name: "Micro Gold", tickSize: 0.1, tickValue: 1, basePrice: 2410 },
+  { contractId: "CON.F.US.EP.Z25", root: "ES", micro: false, symbol: "ES", name: "E-mini S&P 500", tickSize: 0.25, tickValue: 12.5, basePrice: 5620 },
+  { contractId: "CON.F.US.ENQ.Z25", root: "NQ", micro: false, symbol: "NQ", name: "E-mini Nasdaq 100", tickSize: 0.25, tickValue: 5, basePrice: 20100 },
+  { contractId: "CON.F.US.CL.Z25", root: "CL", micro: false, symbol: "CL", name: "Crude Oil", tickSize: 0.01, tickValue: 10, basePrice: 74.2 },
+  { contractId: "CON.F.US.GC.Z25", root: "GC", micro: false, symbol: "GC", name: "Gold", tickSize: 0.1, tickValue: 10, basePrice: 2410 },
+  { contractId: "CON.F.US.YM.Z25", root: "YM", micro: false, symbol: "YM", name: "E-mini Dow", tickSize: 1, tickValue: 5, basePrice: 40850 },
 ];
+
+/** The instrument strip shown across the top of the terminal. */
+export const WATCHLIST = ["MES", "MNQ", "MYM", "M2K", "MCL"] as const;
 
 export function instrumentBySymbol(symbol: string): Instrument {
   return INSTRUMENTS.find((i) => i.symbol === symbol) ?? INSTRUMENTS[0]!;
