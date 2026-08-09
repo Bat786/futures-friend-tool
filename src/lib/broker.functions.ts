@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { simulateBars, instrumentBySymbol, timeframeSeconds, type Bar, type Timeframe } from "./market";
+import { instrumentBySymbol, type Timeframe } from "./market";
+import { fetchBars } from "./bars.server";
+import { computeSignal } from "./signal";
 import {
   readConfig,
   isDemo,
@@ -11,8 +13,6 @@ import {
   placeOrder,
   closeContract,
   cancelOrder,
-  retrieveBars,
-  timeframeToUnit,
 } from "./topstepx.server";
 import { checkPreTrade, dailyStateFromTrades, type RiskLimits } from "./risk";
 import {
@@ -43,47 +43,36 @@ export const getBars = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
+  .handler(async ({ data }) => fetchBars(data.symbol, data.timeframe as Timeframe, data.count));
+
+/**
+ * Direct analogue of the reference `fetch_signal()`: bars in, composite signal
+ * out, so the gauge is one call.
+ */
+export const getSignal = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        symbol: z.string(),
+        timeframe: z.enum(["1m", "5m", "15m", "1h", "1d"]),
+        count: z.number().int().min(50).max(1500).default(300),
+        weights: z
+          .object({
+            rsi: z.number().min(0).max(5),
+            vwap: z.number().min(0).max(5),
+            macd: z.number().min(0).max(5),
+            momentum: z.number().min(0).max(5),
+          })
+          .optional(),
+      })
+      .parse(input),
+  )
   .handler(async ({ data }) => {
-    const inst = instrumentBySymbol(data.symbol);
-    const cfg = readConfig();
-    if (cfg) {
-      try {
-        const { unit, unitNumber } = timeframeToUnit(data.timeframe);
-        const end = new Date();
-        const start = new Date(
-          end.getTime() - timeframeSeconds(data.timeframe as Timeframe) * 1000 * data.count * 3,
-        );
-        const res = await retrieveBars(cfg, {
-          contractId: inst.contractId,
-          unit,
-          unitNumber,
-          startTime: start.toISOString(),
-          endTime: end.toISOString(),
-          limit: data.count,
-        });
-        const bars: Bar[] = (res.bars ?? [])
-          .map((b) => ({
-            time: Math.floor(new Date(b.t).getTime() / 1000),
-            open: b.o,
-            high: b.h,
-            low: b.l,
-            close: b.c,
-            volume: b.v,
-          }))
-          .sort((a, b) => a.time - b.time);
-        if (bars.length) return { bars, source: "live" as const, error: null };
-      } catch (error) {
-        return {
-          bars: simulateBars(data.symbol, data.timeframe as Timeframe, data.count),
-          source: "simulated" as const,
-          error: error instanceof Error ? error.message : "Broker data unavailable",
-        };
-      }
-    }
+    const result = await fetchBars(data.symbol, data.timeframe as Timeframe, data.count);
     return {
-      bars: simulateBars(data.symbol, data.timeframe as Timeframe, data.count),
-      source: "simulated" as const,
-      error: null,
+      signal: computeSignal(result.bars, data.timeframe as Timeframe, data.weights),
+      source: result.source,
+      error: result.error,
     };
   });
 
