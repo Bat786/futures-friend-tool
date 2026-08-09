@@ -86,15 +86,17 @@ function SettingsPage() {
 
   return (
     <AppShell>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Your limits are enforced on the server, not just in the browser.</p>
+      <div className="mb-5">
+        <p className="eyebrow">Settings</p>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Your limits are enforced on the server, not just in the browser.
+        </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
+        <Card className="panel">
           <CardHeader>
-            <CardTitle className="text-base">Risk limits</CardTitle>
+            <CardTitle className="font-display text-base">Risk limits</CardTitle>
             <CardDescription>Keep these at or inside your Topstep account rules.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -125,7 +127,7 @@ function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-3">
+            <div className="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/5 px-3 py-3">
               <div>
                 <div className="text-sm font-medium">Kill switch armed</div>
                 <div className="text-xs text-muted-foreground">Blocks every new order until you disarm it.</div>
@@ -143,9 +145,9 @@ function SettingsPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card>
+          <Card className="panel">
             <CardHeader>
-              <CardTitle className="text-base">Broker connection</CardTitle>
+              <CardTitle className="font-display text-base">Broker connection</CardTitle>
               <CardDescription>TopstepX / ProjectX gateway.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -159,9 +161,9 @@ function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="panel">
             <CardHeader>
-              <CardTitle className="text-base">Account</CardTitle>
+              <CardTitle className="font-display text-base">Account</CardTitle>
             </CardHeader>
             <CardContent>
               <Button variant="outline" onClick={signOut} className="w-full">
@@ -178,9 +180,9 @@ function SettingsPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-mono text-xs">{value}</span>
+    <div className="flex items-center justify-between border-b border-border/60 py-1.5 last:border-0">
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</span>
+      <span className="tabular text-xs">{value}</span>
     </div>
   );
 }
