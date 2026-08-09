@@ -12,15 +12,15 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set a new password — Signal Desk" },
+      { title: "Set a new password — AETHRA" },
       {
         name: "description",
-        content: "Choose a new password for your Signal Desk futures terminal account.",
+        content: "Choose a new password for your AETHRA futures terminal account.",
       },
-      { property: "og:title", content: "Set a new password — Signal Desk" },
+      { property: "og:title", content: "Set a new password — AETHRA" },
       {
         property: "og:description",
-        content: "Choose a new password for your Signal Desk account.",
+        content: "Choose a new password for your AETHRA account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
