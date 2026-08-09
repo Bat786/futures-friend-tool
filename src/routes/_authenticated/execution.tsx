@@ -19,6 +19,12 @@ import { ORDER_TYPE_LABELS, OrderSide, OrderType } from "@/lib/broker-enums";
 import { checkPreTrade, DEFAULT_LIMITS, type DailyState } from "@/lib/risk";
 import { computeSignal } from "@/lib/signal";
 import { cn } from "@/lib/utils";
+import type { CompositeSignal } from "@/lib/signal";
+
+function readingValue(signal: CompositeSignal | null, name: string): number | null {
+  return signal?.readings.find((r) => r.name === name)?.value ?? null;
+}
+
 
 export const Route = createFileRoute("/_authenticated/execution")({
   head: () => ({
