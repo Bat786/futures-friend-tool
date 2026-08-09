@@ -1,46 +1,79 @@
-# Reliable confirmation emails and a resend flow that always works
+# Working confirmation emails + a full Signal Desk redesign
 
-## What is actually going on
+Two tracks in one pass: fix the email confirmation loop for good, and rebuild the interface on a new design system.
 
-Two things need saying before the work:
+---
 
-- There is no email domain configured for this project or workspace, and no email setup has been recorded. Until a sender domain you own is verified, confirmation emails go out through the default Lovable sender with the default template — which is the template producing the link your callback can't verify.
-- The problem is not "missing API-key context" in the link. The project's API key is already provisioned automatically and is not something a confirmation link carries. The fix is to send confirmation emails from your own branded template, which emits a `token_hash` + `type` link that the callback page already knows how to verify.
+## Track A — Confirmation emails that actually work
 
-So the ordering is: sender domain first, custom auth email templates second, resend-flow hardening third.
+### What's actually going on
 
-## Step 1 — Sender domain (needs you)
+Two corrections worth stating up front:
 
-Complete the email domain setup for a domain you own. Nothing else in this plan can produce a working confirmation link until this exists. DNS does not need to finish verifying before step 2, but emails only start sending once it does.
+- There is no email domain configured for this project or workspace, and no email setup has been recorded. Until a sender domain you own is verified, confirmation emails go out through the default Lovable sender with the default template — the one producing the link your callback can't verify.
+- The problem is not "missing API-key context" in the link. The project's API key is already provisioned automatically and is not something a confirmation link carries. The fix is sending confirmations from your own branded template, which emits a `token_hash` + `type` link the callback page already knows how to verify.
 
-## Step 2 — Custom auth email templates
+### Step 1 — Sender domain (needs you)
 
-Scaffold the six auth email templates (signup, magic link, recovery, invite, email change, reauthentication) plus the auth webhook that sends them, then style them to the Signal Desk look: dark-terminal accents, mono wordmark, existing button and border treatment, on the white email body that mail clients require.
+Complete email domain setup for a domain you own. Nothing else here can produce a working link until this exists. DNS doesn't need to finish verifying before step 2, but emails only start sending once it does.
 
-The signup and email-change templates build the confirmation URL to point at `/auth-callback` with the token hash and type as query parameters — the exact shape the callback already parses and passes to `verifyOtp`. That is what makes confirmation succeed.
+### Step 2 — Custom auth email templates
 
-## Step 3 — Resend flow improvements
+Scaffold the six auth templates (signup, magic link, recovery, invite, email change, reauthentication) plus the sending webhook, styled to the new Signal Desk identity — Neon Mint accent, Sora wordmark — on the white email body mail clients require.
 
-Today "Resend confirmation email" appears only after a failed sign-in on the auth page, and again on the callback failure screen. Both call resend and show a toast, with no feedback about what to do next and no protection against the built-in hourly send limit.
+Signup and email-change templates build the confirmation URL pointing at `/auth-callback` with token hash and type as query parameters: exactly the shape the callback parses and passes to `verifyOtp`.
 
-Changes:
+### Step 3 — Resend flow improvements
 
-- Extract one shared resend component used by both the auth page and the callback failure screen, so behaviour cannot drift between them.
-- Always pass the same `/auth-callback` redirect target, resolved from the current origin, so a link generated from preview returns to preview and a link generated from the live site returns to the live site.
-- Surface it earlier: show the resend option on the sign-up tab straight after a successful sign-up ("didn't get it?"), not only after a failed sign-in.
-- Replace the fire-and-forget toast with an explicit sent state: confirm the address it went to, tell the user the link expires, and note that the newest link invalidates older ones.
-- Add a 60-second cooldown on the button with a visible countdown, and handle the rate-limit error specifically ("too many requests — try again in a minute") instead of showing the raw error text.
-- Handle the already-confirmed case: when resend reports the user is already confirmed, say so and link straight to sign in rather than leaving them waiting for an email that will never arrive.
-- Raise the project's hourly auth-email allowance from the low default so testing several resends in a row does not trip the limit.
+Today "Resend confirmation email" appears only after a failed sign-in, and again on the callback failure screen — both fire a toast with no guidance and no protection against the hourly send limit.
 
-## Step 4 — Verify
+- One shared resend component used by the auth page and the callback screen, so behaviour can't drift.
+- Always pass the same `/auth-callback` redirect resolved from the current origin, so a preview link returns to preview and a live link returns to live.
+- Surface it earlier: offer resend right after a successful sign-up, not only after a failed sign-in.
+- Replace the toast with an explicit sent state: confirm the address, note the link expires, note the newest link invalidates older ones.
+- 60-second cooldown with a visible countdown; map the rate-limit error to plain language instead of raw error text.
+- Handle already-confirmed: say so and link to sign in rather than waiting for an email that never arrives.
+- Raise the hourly auth-email allowance above the low default so repeated testing doesn't trip it.
 
-After DNS verifies: sign up with a fresh address, confirm the email arrives from your domain with the branded template, click the link, and check the callback lands on the terminal signed in. Then test the resend path from both entry points and confirm the cooldown, rate-limit message, and already-confirmed message all behave.
+---
+
+## Track B — Redesign
+
+### Direction
+
+Locked from your picks, applied everywhere — landing, auth, terminal, execution, journal, analytics, settings.
+
+- **Palette — Neon Mint:** `#0d1b2a` base, `#1b4332` raised surfaces, `#2dd4a8` primary, `#73ffb8` highlight. High-contrast, screen-forward. Profit stays mint, loss gets a matched red, warning a matched amber — all rebuilt as oklch tokens.
+- **Type — Sora + Manrope:** Sora for headings and the wordmark, Manrope for body and UI. A monospace face stays for numeric columns, prices and P&L so figures stay tabular and aligned. Loaded via link tags in the root head, registered as theme tokens.
+- **Layout — Dashboard:** persistent collapsible sidebar nav replacing today's top nav bar, with a slim top bar for account and session state, and multi-panel content regions underneath.
+
+### What changes per screen
+
+- **Landing** — full-bleed dark hero on the new palette, Sora display headline, live-signal visual, supervision message, single sign-in call to action.
+- **Auth / callback / reset** — restyled to the new tokens, with the improved resend flow from Track A built into the redesigned cards.
+- **App shell** — shadcn Sidebar with icon-collapse (never fully disappears), trigger in the top bar, active route highlighted, mobile drawer behaviour.
+- **Terminal** — chart as the dominant panel, signal gauge and indicator breakdown as flanking panels, all on a consistent panel treatment.
+- **Execution** — order ticket, risk gate state, supervision watchdog and flatten-all promoted into clearly separated zones with unmistakable destructive styling.
+- **Journal / Analytics** — denser tables with tabular numerals, mint/red P&L coding, restyled charts using the new chart tokens.
+- **Settings** — grouped risk-limit cards with clearer field hierarchy.
+
+### Craft details
+
+Every value lands as a semantic token in `src/styles.css` — no hardcoded colors in components. shadcn variants get extended rather than overridden inline. Motion stays restrained: fade and scale on panel entry, no animation on live numeric values where movement would read as a price change.
+
+---
+
+## On Figma
+
+Lovable can't reach Figma from here. Live access needs the Lovable Desktop app, then Figma Desktop in Dev Mode with the local MCP server enabled and connected under Settings → Connectors. It's read-only. If you'd rather skip that, send screenshots or exports of your frames and I'll match them — otherwise this plan builds the direction from your palette, type and layout picks on shadcn primitives.
 
 ## Technical notes
 
-- Callback verification logic in `src/routes/auth-callback.tsx` is already correct for `token_hash` + `type` links and does not need reworking; only the email that generates the link changes.
-- New shared component (roughly `src/components/auth/resend-confirmation.tsx`) owns email state, cooldown timer, and error mapping; `src/routes/auth.tsx` and `src/routes/auth-callback.tsx` both consume it.
-- Templates land under the scaffolded auth email template directory as React Email components; brand values are read from the existing global stylesheet rather than hardcoded new colours.
-- Hourly auth-email rate limit is raised through auth configuration; this requires email sending to be active, so it happens after the domain is set.
-- Unverified: whether the live-site origin is already in the auth redirect allowlist. If confirmation links from the published site bounce, that allowlist entry is the next thing to check.
+- Callback verification in `src/routes/auth-callback.tsx` is already correct for `token_hash` + `type` links; only the email generating the link changes.
+- New shared `src/components/auth/resend-confirmation.tsx` owns email state, cooldown and error mapping; consumed by `auth.tsx` and `auth-callback.tsx`.
+- Auth email templates land as React Email components in the scaffolded directory; brand values read from the new tokens.
+- Hourly auth-email limit raised through auth configuration, after the domain is active.
+- Redesign is presentation-only: `src/styles.css` tokens, `src/components/app-shell.tsx` replaced by a sidebar shell, plus per-route markup and class changes. Signal engine, indicators, risk, journal and broker logic are untouched.
+- Fonts via `<link>` in `src/routes/__root.tsx` head, never a CSS URL import.
+- No database or schema changes.
+- Unverified: whether the live-site origin is in the auth redirect allowlist. If links from the published site bounce, that's the next thing to check.
