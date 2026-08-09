@@ -14,7 +14,334 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bar_cache: {
+        Row: {
+          bar_time: string
+          close: number
+          contract_id: string
+          high: number
+          id: string
+          low: number
+          open: number
+          timeframe: string
+          volume: number
+        }
+        Insert: {
+          bar_time: string
+          close: number
+          contract_id: string
+          high: number
+          id?: string
+          low: number
+          open: number
+          timeframe: string
+          volume?: number
+        }
+        Update: {
+          bar_time?: string
+          close?: number
+          contract_id?: string
+          high?: number
+          id?: string
+          low?: number
+          open?: number
+          timeframe?: string
+          volume?: number
+        }
+        Relationships: []
+      }
+      broker_accounts: {
+        Row: {
+          broker: string
+          created_at: string
+          external_account_id: string
+          id: string
+          is_demo: boolean
+          label: string
+          user_id: string
+        }
+        Insert: {
+          broker?: string
+          created_at?: string
+          external_account_id: string
+          id?: string
+          is_demo?: boolean
+          label: string
+          user_id: string
+        }
+        Update: {
+          broker?: string
+          created_at?: string
+          external_account_id?: string
+          id?: string
+          is_demo?: boolean
+          label?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_summary: {
+        Row: {
+          avg_r_multiple: number | null
+          gross_pnl: number
+          id: string
+          is_backtest: boolean
+          loss_count: number
+          max_drawdown_intraday: number
+          net_pnl: number
+          summary_date: string
+          trades_count: number
+          user_id: string
+          win_count: number
+        }
+        Insert: {
+          avg_r_multiple?: number | null
+          gross_pnl?: number
+          id?: string
+          is_backtest?: boolean
+          loss_count?: number
+          max_drawdown_intraday?: number
+          net_pnl?: number
+          summary_date: string
+          trades_count?: number
+          user_id: string
+          win_count?: number
+        }
+        Update: {
+          avg_r_multiple?: number | null
+          gross_pnl?: number
+          id?: string
+          is_backtest?: boolean
+          loss_count?: number
+          max_drawdown_intraday?: number
+          net_pnl?: number
+          summary_date?: string
+          trades_count?: number
+          user_id?: string
+          win_count?: number
+        }
+        Relationships: []
+      }
+      fills: {
+        Row: {
+          fill_type: string | null
+          filled_at: string
+          id: string
+          order_id: string | null
+          price: number
+          size: number
+          trade_id: string
+          user_id: string
+        }
+        Insert: {
+          fill_type?: string | null
+          filled_at?: string
+          id?: string
+          order_id?: string | null
+          price: number
+          size: number
+          trade_id: string
+          user_id: string
+        }
+        Update: {
+          fill_type?: string | null
+          filled_at?: string
+          id?: string
+          order_id?: string | null
+          price?: number
+          size?: number
+          trade_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fills_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      risk_settings: {
+        Row: {
+          daily_loss_limit: number
+          default_stop_ticks: number
+          default_target_ticks: number
+          kill_switch_armed: boolean
+          max_consecutive_losses: number
+          max_position_size: number
+          max_trades_per_day: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_loss_limit?: number
+          default_stop_ticks?: number
+          default_target_ticks?: number
+          kill_switch_armed?: boolean
+          max_consecutive_losses?: number
+          max_position_size?: number
+          max_trades_per_day?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_loss_limit?: number
+          default_stop_ticks?: number
+          default_target_ticks?: number
+          kill_switch_armed?: boolean
+          max_consecutive_losses?: number
+          max_position_size?: number
+          max_trades_per_day?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      signals: {
+        Row: {
+          created_at: string
+          direction: string | null
+          id: string
+          indicator_name: string
+          timeframe: string | null
+          trade_id: string
+          user_id: string
+          value_at_entry: number | null
+        }
+        Insert: {
+          created_at?: string
+          direction?: string | null
+          id?: string
+          indicator_name: string
+          timeframe?: string | null
+          trade_id: string
+          user_id: string
+          value_at_entry?: number | null
+        }
+        Update: {
+          created_at?: string
+          direction?: string | null
+          id?: string
+          indicator_name?: string
+          timeframe?: string | null
+          trade_id?: string
+          user_id?: string
+          value_at_entry?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trades: {
+        Row: {
+          account_id: string | null
+          contract_id: string | null
+          created_at: string
+          custom_tag: string | null
+          entry_price: number | null
+          entry_time: string
+          exit_price: number | null
+          exit_time: string | null
+          fees: number
+          id: string
+          is_backtest: boolean
+          notes: string | null
+          order_ids: string[]
+          pnl: number | null
+          pnl_r_multiple: number | null
+          setup_tag: string | null
+          side: string
+          size: number
+          status: string
+          stop_price: number | null
+          symbol: string
+          target_price: number | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          custom_tag?: string | null
+          entry_price?: number | null
+          entry_time?: string
+          exit_price?: number | null
+          exit_time?: string | null
+          fees?: number
+          id?: string
+          is_backtest?: boolean
+          notes?: string | null
+          order_ids?: string[]
+          pnl?: number | null
+          pnl_r_multiple?: number | null
+          setup_tag?: string | null
+          side?: string
+          size?: number
+          status?: string
+          stop_price?: number | null
+          symbol: string
+          target_price?: number | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          custom_tag?: string | null
+          entry_price?: number | null
+          entry_time?: string
+          exit_price?: number | null
+          exit_time?: string | null
+          fees?: number
+          id?: string
+          is_backtest?: boolean
+          notes?: string | null
+          order_ids?: string[]
+          pnl?: number | null
+          pnl_r_multiple?: number | null
+          setup_tag?: string | null
+          side?: string
+          size?: number
+          status?: string
+          stop_price?: number | null
+          symbol?: string
+          target_price?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
