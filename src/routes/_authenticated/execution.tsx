@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, ShieldAlert, ShieldCheck, Zap } from "lucide-react";
+import { AlertTriangle, Lock, ShieldAlert, ShieldCheck, Unlock, Zap } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { getAccounts, getPositions, submitOrder, flattenAll, getBrokerStatus } from "@/lib/broker.functions";
-import { getRiskState } from "@/lib/journal.functions";
+import { useBrokerVault } from "@/lib/broker-vault";
+import { searchAccounts, getPositions, placeOrder, flattenAll, fetchBars } from "@/lib/broker-client";
+import { logOrderEntry } from "@/lib/journal.functions";
 import { INSTRUMENTS } from "@/lib/market";
 import { ORDER_TYPE_LABELS, OrderSide, OrderType } from "@/lib/broker-enums";
 import { checkPreTrade, DEFAULT_LIMITS, type DailyState } from "@/lib/risk";
+import { computeSignal } from "@/lib/signal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/execution")({
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/execution")({
       {
         name: "description",
         content:
-          "Place supervised futures orders with pre-trade risk checks, bracket stops and a one-click flatten-all kill switch.",
+          "Place supervised futures orders from your device with pre-trade risk checks, bracket stops and a one-click flatten-all kill switch.",
       },
       { property: "og:title", content: "Execution — supervised order ticket and risk gate" },
       {
@@ -41,6 +43,10 @@ export const Route = createFileRoute("/_authenticated/execution")({
 
 function ExecutionPage() {
   const qc = useQueryClient();
+  const { config: unlockedConfig, status: vaultStatus, unlock } = useBrokerVault();
+  const [passphrase, setPassphrase] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+
   const [symbol, setSymbol] = useState("MES");
   const [setupTag, setSetupTag] = useState("");
   const [orderType, setOrderType] = useState<number>(OrderType.MARKET);
@@ -61,15 +67,45 @@ function ExecutionPage() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
-  const status = useQuery({ queryKey: ["broker-status"], queryFn: () => getBrokerStatus() });
-  const accounts = useQuery({ queryKey: ["accounts"], queryFn: () => getAccounts() });
+  const configured = vaultStatus?.configured ?? false;
+  const config = unlockedConfig;
+
+  const handleUnlock = async () => {
+    setUnlocking(true);
+    try {
+      const cfg = await unlock(passphrase);
+      if (!cfg) {
+        toast.error("Could not unlock vault — check passphrase");
+        return;
+      }
+      toast.success("Vault unlocked");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Unlock failed");
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
+  const accounts = useQuery({
+    queryKey: ["accounts", config?.baseUrl ?? "locked"],
+    queryFn: () => {
+      if (!config) throw new Error("Vault locked");
+      return searchAccounts(config);
+    },
+    enabled: !!config,
+    refetchInterval: 60_000,
+  });
+
   const risk = useQuery({ queryKey: ["risk-state"], queryFn: () => getRiskState(), refetchInterval: 60_000 });
 
   const numericAccountId = Number(accountId);
   const positions = useQuery({
-    queryKey: ["positions", numericAccountId],
-    queryFn: () => getPositions({ data: { accountId: numericAccountId } }),
-    enabled: Number.isFinite(numericAccountId) && numericAccountId > 0,
+    queryKey: ["positions", numericAccountId, config?.baseUrl ?? "locked"],
+    queryFn: () => {
+      if (!config) throw new Error("Vault locked");
+      return getPositions(config, numericAccountId);
+    },
+    enabled: Number.isFinite(numericAccountId) && numericAccountId > 0 && !!config,
     refetchInterval: 15_000,
   });
 
@@ -83,24 +119,58 @@ function ExecutionPage() {
   const gate = checkPreTrade(limits, state, size, supervised);
 
   const place = useMutation({
-    mutationFn: () =>
-      submitOrder({
+    mutationFn: async () => {
+      if (!config) throw new Error("Vault locked");
+      const stopLossTicks = risk.data?.defaults.defaultStopTicks ?? 20;
+      const takeProfitTicks = risk.data?.defaults.defaultTargetTicks ?? 40;
+
+      const [barResult] = await Promise.allSettled([fetchBars(symbol, "5m", 100, config)]);
+      const bars = barResult.status === "fulfilled" ? barResult.value.bars : [];
+      const signal = computeSignal(bars, "5m", risk.data?.weights);
+      const entryPrice = bars.length > 0 ? bars[bars.length - 1].close : null;
+
+      const orderRes = await placeOrder(config, {
+        accountId: numericAccountId,
+        contractId: symbol,
+        type: orderType,
+        side,
+        size,
+        limitPrice: limitPrice ? Number(limitPrice) : null,
+        stopPrice: stopPrice ? Number(stopPrice) : null,
+        customTag: setupTag.trim() || null,
+        stopLossBracket: { ticks: stopLossTicks, type: 0 },
+        takeProfitBracket: { ticks: takeProfitTicks, type: 0 },
+      });
+
+      if (!orderRes.success) {
+        return { ok: false, reason: orderRes.errorMessage ?? "Order rejected" };
+      }
+
+      // Journal the entry on the server after successful broker execution.
+      await logOrderEntry({
         data: {
           accountId: numericAccountId,
           symbol,
-          type: orderType,
           side,
           size,
-          limitPrice: limitPrice ? Number(limitPrice) : null,
-          stopPrice: stopPrice ? Number(stopPrice) : null,
-          stopLossTicks: risk.data?.defaults.defaultStopTicks ?? 20,
-          takeProfitTicks: risk.data?.defaults.defaultTargetTicks ?? 40,
-          supervised,
-          customTag: null,
-          timeframe: "5m" as const,
+          entryPrice,
+          orderType,
+          stopLossTicks,
+          takeProfitTicks,
           setupTag: setupTag.trim() || null,
+          supervised,
+          snapshot: {
+            rsi: signal?.rsi ?? null,
+            vwap: signal?.vwap ?? null,
+            macd: signal?.macd ?? null,
+            momentum: signal?.momentum ?? null,
+            score: signal?.score ?? null,
+          },
         },
-      }),
+      });
+
+      return { ok: true, orderId: orderRes.orderId };
+    },
     onSuccess: (res) => {
       if (!res.ok) {
         toast.error(res.reason ?? "Order rejected");
@@ -114,7 +184,11 @@ function ExecutionPage() {
   });
 
   const flatten = useMutation({
-    mutationFn: () => flattenAll({ data: { accountId: numericAccountId } }),
+    mutationFn: async () => {
+      if (!config) throw new Error("Vault locked");
+      const res = await flattenAll(config, numericAccountId);
+      return { ok: res.success, flattened: res.flattened ?? 0, cancelled: res.cancelled ?? 0, reason: res.errorMessage };
+    },
     onSuccess: (res) => {
       if (!res.ok) toast.error(res.reason ?? "Kill switch hit an error");
       else toast.success(`Flattened ${res.flattened} position(s), cancelled ${res.cancelled} order(s)`);
@@ -129,7 +203,7 @@ function ExecutionPage() {
         <div>
           <p className="eyebrow">Supervised order entry</p>
           <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
-            Nothing is sent without a click that passes your risk gate.
+            All TopstepX calls originate from this device. Nothing is sent without a click that passes your risk gate.
           </p>
         </div>
         <Badge
@@ -145,10 +219,36 @@ function ExecutionPage() {
         </Badge>
       </div>
 
-      {status.data && !status.data.configured && (
+      {!configured && (
         <div className="mb-4 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-          <span>Broker credentials are not configured — orders will be rejected until you add them.</span>
+          <span>
+            Broker credentials are not configured — add them in Settings and unlock the vault before trading.
+          </span>
+        </div>
+      )}
+
+      {configured && !config && (
+        <div className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-2 text-sm">
+              <Lock className="size-4 text-primary" />
+              <span>Vault is locked. Enter your passphrase to trade from this device.</span>
+            </div>
+            <div className="flex flex-1 gap-2">
+              <Input
+                type="password"
+                placeholder="Vault passphrase"
+                value={passphrase}
+                onChange={(e) => setPassphrase(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={handleUnlock} disabled={!passphrase || unlocking}>
+                {unlocking ? "Unlocking..." : "Unlock"}
+                <Unlock className="ml-1.5 size-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -161,7 +261,7 @@ function ExecutionPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Account</Label>
-              <Select value={accountId} onValueChange={setAccountId}>
+              <Select value={accountId} onValueChange={setAccountId} disabled={!config}>
                 <SelectTrigger>
                   <SelectValue placeholder={accounts.data?.accounts.length ? "Select account" : "No accounts found"} />
                 </SelectTrigger>
@@ -294,7 +394,7 @@ function ExecutionPage() {
 
             <Button
               className="w-full"
-              disabled={!gate.allowed || !accountId || place.isPending}
+              disabled={!gate.allowed || !accountId || !config || place.isPending}
               onClick={() => place.mutate()}
             >
               <Zap className="size-4" />
@@ -350,7 +450,7 @@ function ExecutionPage() {
               <Button
                 variant="destructive"
                 className="w-full"
-                disabled={!accountId || flatten.isPending}
+                disabled={!accountId || !config || flatten.isPending}
                 onClick={() => flatten.mutate()}
               >
                 Flatten everything now
