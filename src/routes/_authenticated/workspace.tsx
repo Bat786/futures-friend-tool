@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import { LayoutGrid, Plus, Save } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PanelFrame } from "@/components/workspace/panel-frame";
@@ -205,26 +205,20 @@ function WorkspacePage() {
           </PanelFrame>
         </div>
       ) : (
-        <PanelGroup direction="horizontal" className="h-[calc(100vh-11rem)] min-h-[520px]">
+        <Group orientation="horizontal" className="h-[calc(100vh-11rem)] min-h-[520px] gap-1.5">
           {layout.columns.map((col, ci) => (
-            <>
+            <Fragment key={col.id}>
               {ci > 0 && (
-                <PanelResizeHandle
-                  key={`h-${col.id}`}
-                  className="w-1.5 rounded-full bg-border/60 transition-colors hover:bg-primary/50"
-                />
+                <Separator className="w-1.5 rounded-full bg-border/60 transition-colors hover:bg-primary/50" />
               )}
-              <Panel key={col.id} defaultSize={100 / layout.columns.length} minSize={15}>
-                <PanelGroup direction="vertical">
+              <Panel defaultSize={`${100 / layout.columns.length}%`} minSize="15%">
+                <Group orientation="vertical" className="h-full gap-1.5">
                   {col.panels.map((p, pi) => (
-                    <>
+                    <Fragment key={p}>
                       {pi > 0 && (
-                        <PanelResizeHandle
-                          key={`v-${p}`}
-                          className="h-1.5 rounded-full bg-border/60 transition-colors hover:bg-primary/50"
-                        />
+                        <Separator className="h-1.5 rounded-full bg-border/60 transition-colors hover:bg-primary/50" />
                       )}
-                      <Panel key={p} defaultSize={100 / col.panels.length} minSize={12}>
+                      <Panel defaultSize={`${100 / col.panels.length}%`} minSize="12%">
                         <div
                           className="h-full"
                           onDragOver={(e) => {
@@ -247,13 +241,13 @@ function WorkspacePage() {
                           </PanelFrame>
                         </div>
                       </Panel>
-                    </>
+                    </Fragment>
                   ))}
-                </PanelGroup>
+                </Group>
               </Panel>
-            </>
+            </Fragment>
           ))}
-        </PanelGroup>
+        </Group>
       )}
     </AppShell>
   );
