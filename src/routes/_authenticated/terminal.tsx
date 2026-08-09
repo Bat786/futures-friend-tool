@@ -60,36 +60,41 @@ function TerminalPage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Terminal</h1>
-          <p className="text-sm text-muted-foreground">
-            {inst.name} · tick {inst.tickSize} = ${inst.tickValue}
+          <p className="eyebrow">Instrument</p>
+          <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight">{inst.name}</h2>
+          <p className="tabular mt-1 text-xs text-muted-foreground">
+            tick {inst.tickSize} = ${inst.tickValue}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-md border border-border p-0.5">
+          <div className="flex rounded-md border border-border bg-card p-0.5">
             {INSTRUMENTS.map((i) => (
               <button
                 key={i.symbol}
                 onClick={() => setSymbol(i.symbol)}
                 className={cn(
-                  "rounded px-3 py-1 font-mono text-xs transition-colors",
-                  i.symbol === symbol ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                  "rounded-sm px-3 py-1.5 font-mono text-xs transition-colors",
+                  i.symbol === symbol
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 {i.symbol}
               </button>
             ))}
           </div>
-          <div className="flex rounded-md border border-border p-0.5">
+          <div className="flex rounded-md border border-border bg-card p-0.5">
             {TIMEFRAMES.map((t) => (
               <button
                 key={t.value}
                 onClick={() => setTimeframe(t.value)}
                 className={cn(
-                  "rounded px-3 py-1 font-mono text-xs transition-colors",
-                  t.value === timeframe ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-foreground",
+                  "rounded-sm px-3 py-1.5 font-mono text-xs transition-colors",
+                  t.value === timeframe
+                    ? "bg-secondary text-secondary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 {t.value}
@@ -113,9 +118,9 @@ function TerminalPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Card>
+        <Card className="panel">
           <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle className="font-mono text-base">
+            <CardTitle className="tabular text-base">
               {symbol}
               {lastBar && (
                 <span className="ml-3 text-sm font-normal">
@@ -127,7 +132,15 @@ function TerminalPage() {
                 </span>
               )}
             </CardTitle>
-            <Badge variant="outline" className="font-mono text-xs">
+            <Badge
+              variant="outline"
+              className={cn(
+                "font-mono text-[10px] tracking-[0.16em]",
+                query.data?.source === "live"
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-warning/40 bg-warning/10 text-warning",
+              )}
+            >
               {query.data?.source === "live" ? "LIVE" : "SIM"}
             </Badge>
           </CardHeader>
@@ -145,31 +158,31 @@ function TerminalPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card>
+          <Card className="panel-glow">
             <CardHeader>
-              <CardTitle className="text-base">Composite signal</CardTitle>
+              <CardTitle className="font-display text-base">Composite signal</CardTitle>
             </CardHeader>
             <CardContent>
               {query.isLoading ? <Skeleton className="h-40 w-full" /> : <SignalGauge signal={signal} />}
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="panel">
             <CardHeader>
-              <CardTitle className="text-base">Indicators</CardTitle>
+              <CardTitle className="font-display text-base">Indicators</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="divide-y divide-border/70">
               {signal.readings.map((r) => (
-                <div key={r.name} className="flex items-start justify-between gap-3 text-sm">
+                <div key={r.name} className="flex items-start justify-between gap-3 py-3 text-sm first:pt-0 last:pb-0">
                   <div>
                     <div className="font-medium">{r.name}</div>
                     <div className="text-xs text-muted-foreground">{r.note}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono">{r.display}</div>
+                    <div className="tabular">{r.display}</div>
                     <div
                       className={cn(
-                        "text-xs uppercase",
+                        "font-mono text-[10px] uppercase tracking-[0.14em]",
                         r.direction === "bullish" && "text-profit",
                         r.direction === "bearish" && "text-loss",
                         r.direction === "neutral" && "text-muted-foreground",
