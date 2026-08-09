@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Activity } from "lucide-react";
+import { AethraMark } from "@/components/brand/aethra-logo";
 
 /** Shared chrome for every unauthenticated screen. */
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -8,7 +8,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="grid-backdrop pointer-events-none absolute inset-0 opacity-40" aria-hidden />
       <div
         className="pointer-events-none absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-        style={{ backgroundImage: "var(--gradient-mint)" }}
+        style={{ backgroundImage: "var(--gradient-aurora)" }}
         aria-hidden
       />
 
