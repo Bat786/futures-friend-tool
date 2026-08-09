@@ -1,5 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
-import { getBars } from "@/lib/broker.functions";
+import { useBrokerVault } from "@/lib/broker-vault";
+import { fetchBars } from "@/lib/broker-client";
 import { instrumentBySymbol, WATCHLIST, type Timeframe } from "@/lib/market";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +14,12 @@ export function WatchlistStrip({
   timeframe: Timeframe;
   onSelect: (s: string) => void;
 }) {
+  const { config } = useBrokerVault();
+
   const results = useQueries({
     queries: WATCHLIST.map((s) => ({
-      queryKey: ["bars", s, timeframe],
-      queryFn: () => getBars({ data: { symbol: s, timeframe, count: 300 } }),
+      queryKey: ["bars", s, timeframe, config?.baseUrl ?? "sim"],
+      queryFn: () => fetchBars(s, timeframe, 300, config),
       refetchInterval: 30_000,
       staleTime: 15_000,
     })),
