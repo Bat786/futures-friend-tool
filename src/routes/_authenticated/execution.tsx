@@ -151,7 +151,8 @@ function ExecutionPage() {
                 <SelectContent>
                   {(accounts.data?.accounts ?? []).map((a) => (
                     <SelectItem key={a.id} value={String(a.id)}>
-                      {a.name} · ${a.balance.toLocaleString()}
+                      {a.name}
+                      {a.balance === null ? "" : ` · $${a.balance.toLocaleString()}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
