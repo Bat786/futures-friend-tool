@@ -11,59 +11,58 @@ export function sma(values: number[], period: number): (number | null)[] {
   return out;
 }
 
-export function ema(values: number[], period: number): (number | null)[] {
-  const k = 2 / (period + 1);
-  const out: (number | null)[] = [];
+/**
+ * pandas `Series.ewm(alpha=..., adjust=False).mean()` — recursive smoothing
+ * seeded from the first value, emitting from bar 0.
+ */
+export function ewm(values: number[], alpha: number): number[] {
+  const out: number[] = [];
   let prev: number | null = null;
-  for (let i = 0; i < values.length; i++) {
-    const v = values[i]!;
-    prev = prev === null ? v : v * k + prev * (1 - k);
-    out.push(i >= period - 1 ? prev : null);
+  for (const v of values) {
+    prev = prev === null ? v : alpha * v + (1 - alpha) * prev;
+    out.push(prev);
   }
   return out;
 }
 
-export function rsi(closes: number[], period = 14): (number | null)[] {
-  const out: (number | null)[] = [null];
-  let avgGain = 0;
-  let avgLoss = 0;
+/** `ewm(span=period, adjust=False)`: alpha = 2 / (span + 1). */
+export function ema(values: number[], period: number): number[] {
+  return ewm(values, 2 / (period + 1));
+}
+
+/**
+ * Wilder RSI via `ewm(alpha=1/period, adjust=False)`.
+ * Returns 50 (neutral) wherever the value is undefined, matching `.fillna(50)`.
+ */
+export function rsi(closes: number[], period = 14): number[] {
+  if (closes.length === 0) return [];
+  const gains: number[] = [0];
+  const losses: number[] = [0];
   for (let i = 1; i < closes.length; i++) {
-    const change = closes[i]! - closes[i - 1]!;
-    const gain = Math.max(change, 0);
-    const loss = Math.max(-change, 0);
-    if (i <= period) {
-      avgGain += gain / period;
-      avgLoss += loss / period;
-      out.push(i === period ? computeRsi(avgGain, avgLoss) : null);
-    } else {
-      avgGain = (avgGain * (period - 1) + gain) / period;
-      avgLoss = (avgLoss * (period - 1) + loss) / period;
-      out.push(computeRsi(avgGain, avgLoss));
-    }
+    const delta = closes[i]! - closes[i - 1]!;
+    gains.push(Math.max(delta, 0));
+    losses.push(Math.max(-delta, 0));
   }
-  return out;
-}
-
-function computeRsi(avgGain: number, avgLoss: number): number {
-  if (avgLoss === 0) return 100;
-  const rs = avgGain / avgLoss;
-  return 100 - 100 / (1 + rs);
+  const alpha = 1 / period;
+  const avgGain = ewm(gains, alpha);
+  const avgLoss = ewm(losses, alpha);
+  return closes.map((_, i) => {
+    // min_periods=period: undefined before the window fills, and where there
+    // are no losses at all the RS is undefined too — both read as neutral.
+    if (i < period) return 50;
+    const loss = avgLoss[i]!;
+    if (loss === 0) return 50;
+    const rs = avgGain[i]! / loss;
+    return 100 - 100 / (1 + rs);
+  });
 }
 
 export function macd(closes: number[], fast = 12, slow = 26, signalPeriod = 9) {
   const fastLine = ema(closes, fast);
   const slowLine = ema(closes, slow);
-  const macdLine = closes.map((_, i) => {
-    const f = fastLine[i];
-    const s = slowLine[i];
-    return f !== null && s !== null && f !== undefined && s !== undefined ? f - s : null;
-  });
-  const filled = macdLine.map((v) => v ?? 0);
-  const signalLine = ema(filled, signalPeriod);
-  const histogram = macdLine.map((v, i) => {
-    const s = signalLine[i];
-    return v !== null && s !== null && s !== undefined ? v - s : null;
-  });
+  const macdLine = closes.map((_, i) => fastLine[i]! - slowLine[i]!);
+  const signalLine = ema(macdLine, signalPeriod);
+  const histogram = macdLine.map((v, i) => v - signalLine[i]!);
   return { macdLine, signalLine, histogram };
 }
 
@@ -88,7 +87,7 @@ export function vwap(bars: Bar[]): (number | null)[] {
   return out;
 }
 
-/** Rate of change over `period` bars, as a percentage. */
+/** Simple rate-of-change momentum: % change over `period` bars. */
 export function momentum(closes: number[], period = 10): (number | null)[] {
   return closes.map((c, i) => {
     if (i < period) return null;
@@ -97,11 +96,16 @@ export function momentum(closes: number[], period = 10): (number | null)[] {
   });
 }
 
-/** Current volume relative to its own moving average (1 = average). */
-export function relativeVolume(bars: Bar[], period = 20): (number | null)[] {
-  const avg = sma(bars.map((b) => b.volume), period);
-  return bars.map((b, i) => {
-    const a = avg[i];
-    return a ? b.volume / a : null;
+/** How unusual current volume is vs its rolling mean — flags momentum spikes. */
+export function volumeZScore(bars: Bar[], window = 20): (number | null)[] {
+  const volumes = bars.map((b) => b.volume);
+  return volumes.map((v, i) => {
+    if (i < window - 1) return null;
+    const slice = volumes.slice(i - window + 1, i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / window;
+    // pandas rolling().std() defaults to the sample (ddof=1) deviation.
+    const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / (window - 1);
+    const std = Math.sqrt(variance);
+    return std === 0 ? null : (v - mean) / std;
   });
 }
