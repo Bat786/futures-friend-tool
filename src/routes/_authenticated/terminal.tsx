@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useMemo, useState } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, Lock, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SignalGauge } from "@/components/signal-gauge";
 import { WatchlistStrip } from "@/components/watchlist-strip";
@@ -10,11 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClientOnly } from "@tanstack/react-router";
-import { getBars } from "@/lib/broker.functions";
 import { getRiskState } from "@/lib/journal.functions";
 import { TIMEFRAMES, instrumentBySymbol, type Timeframe } from "@/lib/market";
 import { vwap } from "@/lib/indicators";
 import { computeSignal, DEFAULT_WEIGHTS } from "@/lib/signal";
+import { useBrokerVault } from "@/lib/broker-vault";
+import { fetchBars } from "@/lib/broker-client";
 import { cn } from "@/lib/utils";
 
 const PriceChart = lazy(() => import("@/components/price-chart"));
