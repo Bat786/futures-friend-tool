@@ -29,23 +29,44 @@ export function SignalGauge({ signal }: { signal: CompositeSignal }) {
         <path
           d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
           fill="none"
-          stroke="url(#gaugeArc)"
-          strokeWidth="14"
+          stroke="var(--grid)"
+          strokeWidth="16"
           strokeLinecap="round"
-          opacity="0.85"
+          opacity="0.6"
         />
-        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke={color} strokeWidth="3" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="5" fill={color} />
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="url(#gaugeArc)"
+          strokeWidth="10"
+          strokeLinecap="round"
+          opacity="0.9"
+        />
+        <line
+          x1={cx}
+          y1={cy}
+          x2={needleX}
+          y2={needleY}
+          stroke={color}
+          strokeWidth="3"
+          strokeLinecap="round"
+          style={{ transition: "all 400ms cubic-bezier(0.4, 0, 0.2, 1)" }}
+        />
+        <circle cx={cx} cy={cy} r="6" fill={color} />
+        <circle cx={cx} cy={cy} r="11" fill={color} opacity="0.18" />
       </svg>
       <div className="-mt-4 text-center">
-        <div className="font-mono text-3xl font-bold" style={{ color }}>
+        <div className="tabular text-4xl font-bold leading-none" style={{ color }}>
           {signal.score > 0 ? "+" : ""}
           {signal.score}
         </div>
-        <div className="text-sm font-medium" style={{ color }}>
+        <div
+          className="mt-2 inline-block rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em]"
+          style={{ color, borderColor: color, backgroundColor: `color-mix(in oklab, ${color} 12%, transparent)` }}
+        >
           {signal.label}
         </div>
-        <div className="mt-1 text-xs text-muted-foreground">
+        <div className="mt-2 text-xs text-muted-foreground">
           Composite of {signal.readings.filter((r) => r.weight > 0).length} weighted indicators
         </div>
       </div>

@@ -1,13 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { toast } from "sonner";
-import { Activity, CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthLayout } from "@/components/auth/auth-layout";
+import { ResendConfirmation } from "@/components/auth/resend-confirmation";
 
 export const Route = createFileRoute("/auth-callback")({
   head: () => ({
@@ -40,7 +38,11 @@ const supportedConfirmationTypes = new Set<EmailOtpType>([
 
 function readAuthParams() {
   if (typeof window === "undefined") {
-    return { error: null as string | null, tokenHash: null as string | null, type: null as EmailOtpType | null };
+    return {
+      error: null as string | null,
+      tokenHash: null as string | null,
+      type: null as EmailOtpType | null,
+    };
   }
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -49,9 +51,10 @@ function readAuthParams() {
   const description = get("error_description");
   const tokenHash = get("token_hash");
   const rawType = get("type");
-  const type = rawType && supportedConfirmationTypes.has(rawType as EmailOtpType)
-    ? (rawType as EmailOtpType)
-    : null;
+  const type =
+    rawType && supportedConfirmationTypes.has(rawType as EmailOtpType)
+      ? (rawType as EmailOtpType)
+      : null;
 
   return {
     error: error ? (description ? description.replace(/\+/g, " ") : error) : null,
@@ -64,8 +67,6 @@ function AuthCallbackPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"working" | "ok" | "failed">("working");
   const [message, setMessage] = useState("");
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const { error, tokenHash, type } = readAuthParams();
@@ -95,10 +96,7 @@ function AuthCallbackPage() {
           return;
         }
 
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type,
-        });
+        const { error: verifyError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
         if (verifyError) {
           setStatus("failed");
           setMessage(verifyError.message);
@@ -127,89 +125,49 @@ function AuthCallbackPage() {
     };
   }, [navigate]);
 
-  async function resend(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth-callback` },
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("A fresh confirmation link is on its way.");
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="grid size-8 place-items-center rounded bg-primary/15 text-primary">
-            <Activity className="size-4" />
-          </span>
-          <span className="font-mono text-base font-semibold tracking-tight">SIGNAL DESK</span>
-        </div>
+    <AuthLayout>
+      <Card className={status === "ok" ? "panel-glow" : "panel"}>
+        {status === "working" && (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-display">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              Confirming your account
+            </CardTitle>
+            <CardDescription>One moment while we verify your email link.</CardDescription>
+          </CardHeader>
+        )}
 
-        <Card>
-          {status === "working" && (
+        {status === "ok" && (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 font-display text-profit">
+              <CheckCircle2 className="size-4" />
+              Email confirmed
+            </CardTitle>
+            <CardDescription>Taking you to the terminal…</CardDescription>
+          </CardHeader>
+        )}
+
+        {status === "failed" && (
+          <>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
-                Confirming your account
+              <CardTitle className="flex items-center gap-2 font-display">
+                <TriangleAlert className="size-4 text-destructive" />
+                Confirmation link didn't work
               </CardTitle>
-              <CardDescription>One moment while we verify your email link.</CardDescription>
+              <CardDescription>{message}</CardDescription>
             </CardHeader>
-          )}
-
-          {status === "ok" && (
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-profit">
-                <CheckCircle2 className="size-4" />
-                Email confirmed
-              </CardTitle>
-              <CardDescription>Taking you to the terminal…</CardDescription>
-            </CardHeader>
-          )}
-
-          {status === "failed" && (
-            <>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TriangleAlert className="size-4 text-destructive" />
-                  Confirmation link didn't work
-                </CardTitle>
-                <CardDescription>{message}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={resend} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resend-email">Email</Label>
-                    <Input
-                      id="resend-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={busy}>
-                    {busy && <Loader2 className="size-4 animate-spin" />}
-                    Resend confirmation email
-                  </Button>
-                </form>
-                <div className="mt-4 text-center text-xs text-muted-foreground">
-                  <Link to="/auth" className="underline underline-offset-4">
-                    Back to sign in
-                  </Link>
-                </div>
-              </CardContent>
-            </>
-          )}
-        </Card>
-      </div>
-    </div>
+            <CardContent>
+              <ResendConfirmation />
+              <div className="mt-4 text-center text-xs text-muted-foreground">
+                <Link to="/auth" className="underline underline-offset-4 hover:text-foreground">
+                  Back to sign in
+                </Link>
+              </div>
+            </CardContent>
+          </>
+        )}
+      </Card>
+    </AuthLayout>
   );
 }

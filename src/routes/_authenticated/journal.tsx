@@ -105,10 +105,12 @@ function JournalPage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Trade journal</h1>
-          <p className="text-sm text-muted-foreground">{rows.length} trades logged</p>
+          <p className="eyebrow">Trade journal</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            <span className="tabular text-foreground">{rows.length}</span> trades logged
+          </p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -219,9 +221,9 @@ function JournalPage() {
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="panel">
         <CardHeader>
-          <CardTitle className="text-base">All trades</CardTitle>
+          <CardTitle className="font-display text-base">All trades</CardTitle>
           <CardDescription>Newest first. P&L and R multiple are derived from your entry, exit and stop.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -235,7 +237,7 @@ function JournalPage() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="[&_th]:font-mono [&_th]:text-[10px] [&_th]:uppercase [&_th]:tracking-[0.16em]">
                     <TableHead>Symbol</TableHead>
                     <TableHead>Side</TableHead>
                     <TableHead className="text-right">Size</TableHead>
@@ -249,25 +251,33 @@ function JournalPage() {
                 </TableHeader>
                 <TableBody>
                   {rows.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-mono">{t.symbol}</TableCell>
+                    <TableRow key={t.id} className="transition-colors hover:bg-muted/40">
+                      <TableCell className="tabular font-medium">{t.symbol}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={t.side === "buy" ? "text-profit" : "text-loss"}>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "font-mono text-[10px] uppercase tracking-[0.12em]",
+                            t.side === "buy"
+                              ? "border-profit/40 bg-profit/10 text-profit"
+                              : "border-loss/40 bg-loss/10 text-loss",
+                          )}
+                        >
                           {t.side}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono">{t.size}</TableCell>
-                      <TableCell className="text-right font-mono">{t.entry_price ?? "—"}</TableCell>
-                      <TableCell className="text-right font-mono">{t.exit_price ?? "—"}</TableCell>
+                      <TableCell className="tabular text-right">{t.size}</TableCell>
+                      <TableCell className="tabular text-right">{t.entry_price ?? "—"}</TableCell>
+                      <TableCell className="tabular text-right">{t.exit_price ?? "—"}</TableCell>
                       <TableCell
                         className={cn(
-                          "text-right font-mono",
+                          "tabular text-right font-medium",
                           t.pnl !== null && (Number(t.pnl) >= 0 ? "text-profit" : "text-loss"),
                         )}
                       >
                         {t.pnl === null ? "—" : `$${Number(t.pnl).toFixed(2)}`}
                       </TableCell>
-                      <TableCell className="text-right font-mono">
+                      <TableCell className="tabular text-right">
                         {t.pnl_r_multiple === null ? "—" : Number(t.pnl_r_multiple).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{t.setup_tag ?? "untagged"}</TableCell>

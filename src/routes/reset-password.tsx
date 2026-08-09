@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Activity, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthLayout } from "@/components/auth/auth-layout";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -64,18 +65,10 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="grid size-8 place-items-center rounded bg-primary/15 text-primary">
-            <Activity className="size-4" />
-          </span>
-          <span className="font-mono text-base font-semibold tracking-tight">SIGNAL DESK</span>
-        </div>
-
-        <Card>
+    <AuthLayout>
+      <Card className="panel">
           <CardHeader>
-            <CardTitle>Set a new password</CardTitle>
+            <CardTitle className="font-display">Set a new password</CardTitle>
             <CardDescription>
               {ready && !hasSession
                 ? "This reset link is invalid or has expired. Request a new one from the sign-in page."
@@ -107,8 +100,7 @@ function ResetPasswordPage() {
               </form>
             )}
           </CardContent>
-        </Card>
-      </div>
-    </div>
+      </Card>
+    </AuthLayout>
   );
 }
