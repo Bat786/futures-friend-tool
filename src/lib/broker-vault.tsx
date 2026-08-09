@@ -8,6 +8,10 @@ export type BrokerVault = {
   environment: Environment;
 };
 
+export type BrokerConfig = BrokerVault & {
+  baseUrl: string;
+};
+
 export type VaultStatus = {
   configured: boolean;
   environment: Environment;
@@ -24,12 +28,15 @@ export function gatewayFor(environment: Environment): string {
   return environment === "live" ? LIVE_GATEWAY : DEMO_GATEWAY;
 }
 
+function toConfig(credentials: BrokerVault): BrokerConfig {
+  return { ...credentials, baseUrl: gatewayFor(credentials.environment) };
+}
+
 /** Convert a Uint8Array slice to a plain ArrayBuffer for Web Crypto APIs. */
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
-/** Exported for tests; never touch in UI code. */
 function getRandomBytes(length: number): Uint8Array {
   if (typeof crypto === "undefined" || !("getRandomValues" in crypto)) {
     throw new Error("Browser Web Crypto API is not available");
@@ -79,7 +86,7 @@ export async function decryptVault(ciphertext: string, passphrase: string): Prom
   const iv = bytes.slice(16, 28);
   const ct = bytes.slice(28);
   const key = await deriveKey(passphrase, salt);
-  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv: toArrayBuffer(iv) }, key, ct);
   return decoder.decode(plaintext);
 }
 
@@ -124,17 +131,17 @@ export async function saveVault(credentials: BrokerVault, passphrase: string): P
   localStorage.setItem(VAULT_KEY, JSON.stringify(persisted));
 }
 
-export async function loadVault(passphrase: string): Promise<BrokerVault | null> {
+export async function loadVault(passphrase: string): Promise<BrokerConfig | null> {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem(VAULT_KEY);
   if (!raw) return null;
   const parsed: PersistedVault = JSON.parse(raw);
   const apiKey = await decryptVault(parsed.ciphertext, passphrase);
-  return {
+  return toConfig({
     username: parsed.username,
     apiKey,
     environment: parsed.environment,
-  };
+  });
 }
 
 export function clearVault(): void {
@@ -145,19 +152,19 @@ export function clearVault(): void {
 // React context — keeps the decrypted config in memory only.
 
 type VaultContextValue = {
-  config: BrokerVault | null;
+  config: BrokerConfig | null;
   status: VaultStatus | null;
   loading: boolean;
-  unlock: (passphrase: string) => Promise<BrokerVault | null>;
+  unlock: (passphrase: string) => Promise<BrokerConfig | null>;
   lock: () => void;
-  save: (credentials: BrokerVault, passphrase: string) => Promise<BrokerVault | null>;
+  save: (credentials: BrokerVault, passphrase: string) => Promise<BrokerConfig | null>;
   clear: () => void;
 };
 
 const VaultContext = createContext<VaultContextValue | null>(null);
 
 export function BrokerVaultProvider({ children }: { children: ReactNode }) {
-  const [config, setConfig] = useState<BrokerVault | null>(null);
+  const [config, setConfig] = useState<BrokerConfig | null>(null);
   const [status, setStatus] = useState<VaultStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -166,7 +173,7 @@ export function BrokerVaultProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const unlock = useCallback(async (passphrase: string): Promise<BrokerVault | null> => {
+  const unlock = useCallback(async (passphrase: string): Promise<BrokerConfig | null> => {
     const cfg = await loadVault(passphrase);
     setConfig(cfg);
     if (cfg) setStatus(getVaultStatus());
@@ -178,12 +185,13 @@ export function BrokerVaultProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const save = useCallback(
-    async (credentials: BrokerVault, passphrase: string): Promise<BrokerVault | null> => {
+    async (credentials: BrokerVault, passphrase: string): Promise<BrokerConfig | null> => {
       try {
         await saveVault(credentials, passphrase);
-        setConfig(credentials);
+        const cfg = toConfig(credentials);
+        setConfig(cfg);
         setStatus(getVaultStatus());
-        return credentials;
+        return cfg;
       } catch (e) {
         console.error("Failed to save vault", e);
         return null;
