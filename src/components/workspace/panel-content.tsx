@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignalGauge } from "@/components/signal-gauge";
 import { useBrokerVault } from "@/lib/broker-vault";
-import { fetchBars, searchPositions } from "@/lib/broker-client";
+import { fetchBars, searchAccounts, searchPositions } from "@/lib/broker-client";
 import { getNewsFeed } from "@/lib/news.functions";
 import { getRiskState, listTrades } from "@/lib/journal.functions";
 import { instrumentBySymbol, WATCHLIST, type Timeframe } from "@/lib/market";
@@ -103,9 +103,14 @@ function SignalPanel({ ctx }: { ctx: PanelContext }) {
 function PositionsPanel() {
   const { config } = useBrokerVault();
   const q = useQuery({
-    queryKey: ["positions", config?.baseUrl ?? "none", config?.accountId ?? "none"],
-    queryFn: () => searchPositions(config!, Number(config!.accountId)),
-    enabled: Boolean(config?.accountId),
+    queryKey: ["positions", config?.baseUrl ?? "none"],
+    queryFn: async () => {
+      const { accounts } = await searchAccounts(config!);
+      const account = accounts[0];
+      if (!account) return { positions: [] };
+      return searchPositions(config!, Number(account.id));
+    },
+    enabled: Boolean(config),
     refetchInterval: 15_000,
   });
 
