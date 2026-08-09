@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { getRiskState, updateRiskSettings } from "@/lib/journal.functions";
-import { getBrokerStatus } from "@/lib/broker.functions";
+import { BrokerConnectCard } from "@/components/broker-connect-card";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -39,7 +39,6 @@ function SettingsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const risk = useQuery({ queryKey: ["risk-state"], queryFn: () => getRiskState() });
-  const broker = useQuery({ queryKey: ["broker-status"], queryFn: () => getBrokerStatus() });
 
   const [form, setForm] = useState({
     daily_loss_limit: 500,
@@ -190,21 +189,7 @@ function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="panel">
-            <CardHeader>
-              <CardTitle className="font-display text-base">Broker connection</CardTitle>
-              <CardDescription>TopstepX / ProjectX gateway.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row label="Status" value={broker.data?.configured ? "Connected" : "Not configured"} />
-              <Row label="Environment" value={broker.data?.demo ? "Demo / evaluation" : "Live"} />
-              <Row label="Gateway" value={broker.data?.baseUrl ?? "—"} />
-              <p className="pt-2 text-xs text-muted-foreground">
-                Credentials are stored as server-side secrets and are never sent to the browser. Ask me to add them and
-                I'll open a secure form.
-              </p>
-            </CardContent>
-          </Card>
+          <BrokerConnectCard />
 
           <Card className="panel">
             <CardHeader>

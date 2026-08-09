@@ -1,6 +1,6 @@
 import { simulateBars, timeframeSeconds, type Bar, type Timeframe } from "./market";
 import { resolveContractId } from "./contracts.server";
-import { readConfig, retrieveBars, timeframeToUnit } from "./topstepx.server";
+import { readConfig, retrieveBars, timeframeToUnit, type BrokerConfig } from "./topstepx.server";
 
 export type BarsResult = {
   bars: Bar[];
@@ -17,12 +17,13 @@ export async function fetchBars(
   symbol: string,
   timeframe: Timeframe,
   count: number,
+  config?: BrokerConfig | null,
 ): Promise<BarsResult> {
-  const cfg = readConfig();
+  const cfg = config === undefined ? readConfig() : config;
   if (!cfg) return { bars: simulateBars(symbol, timeframe, count), source: "simulated", error: null };
 
   try {
-    const contractId = await resolveContractId(symbol);
+    const contractId = await resolveContractId(symbol, cfg);
     const { unit, unitNumber } = timeframeToUnit(timeframe);
     const end = new Date();
     const start = new Date(end.getTime() - timeframeSeconds(timeframe) * 1000 * count * 3);

@@ -6,8 +6,6 @@ import { fetchBars } from "./bars.server";
 import { computeSignal, DEFAULT_WEIGHTS, type SignalWeights } from "./signal";
 import { resolveContractId } from "./contracts.server";
 import {
-  readConfig,
-  isDemo,
   searchAccounts,
   searchPositions,
   searchOrders,
@@ -25,16 +23,21 @@ import {
   type BrokerPositionDTO,
 } from "./broker-types";
 
-export const getBrokerStatus = createServerFn({ method: "GET" }).handler(async () => {
-  const cfg = readConfig();
-  return {
-    configured: cfg !== null,
-    demo: cfg ? isDemo(cfg) : true,
-    baseUrl: cfg ? cfg.baseUrl : null,
-  };
-});
+export const getBrokerStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const { isDemo } = await import("./topstepx.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
+    return {
+      configured: cfg !== null,
+      demo: cfg ? isDemo(cfg) : true,
+      baseUrl: cfg ? cfg.baseUrl : null,
+    };
+  });
 
 export const getBars = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -44,13 +47,18 @@ export const getBars = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => fetchBars(data.symbol, data.timeframe as Timeframe, data.count));
+  .handler(async ({ data, context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
+    return fetchBars(data.symbol, data.timeframe as Timeframe, data.count, cfg);
+  });
 
 /**
  * Direct analogue of the reference `fetch_signal()`: bars in, composite signal
  * out, so the gauge is one call.
  */
 export const getSignal = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -68,8 +76,10 @@ export const getSignal = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
-    const result = await fetchBars(data.symbol, data.timeframe as Timeframe, data.count);
+  .handler(async ({ data, context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
+    const result = await fetchBars(data.symbol, data.timeframe as Timeframe, data.count, cfg);
     return {
       signal: computeSignal(result.bars, data.timeframe as Timeframe, data.weights),
       source: result.source,
@@ -79,8 +89,9 @@ export const getSignal = createServerFn({ method: "GET" })
 
 export const getAccounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    const cfg = readConfig();
+  .handler(async ({ context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
     if (!cfg) return { configured: false, accounts: [] as BrokerAccountDTO[] };
     const res = await searchAccounts(cfg);
     return { configured: true, accounts: (res.accounts ?? []).map(toAccountDTO) };
@@ -89,8 +100,9 @@ export const getAccounts = createServerFn({ method: "GET" })
 export const getPositions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ accountId: z.number().int() }).parse(input))
-  .handler(async ({ data }) => {
-    const cfg = readConfig();
+  .handler(async ({ data, context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
     if (!cfg) return { configured: false, positions: [] as BrokerPositionDTO[] };
     const res = await searchPositions(cfg, data.accountId);
     return { configured: true, positions: (res.positions ?? []).map(toPositionDTO) };
@@ -99,8 +111,9 @@ export const getPositions = createServerFn({ method: "POST" })
 export const getRecentOrders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ accountId: z.number().int() }).parse(input))
-  .handler(async ({ data }) => {
-    const cfg = readConfig();
+  .handler(async ({ data, context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
     if (!cfg) return { configured: false, orders: [] as BrokerOrderDTO[] };
     const since = new Date(Date.now() - 7 * 86400_000).toISOString();
     const res = await searchOrders(cfg, data.accountId, since);
@@ -164,17 +177,18 @@ export const submitOrder = createServerFn({ method: "POST" })
     const check = checkPreTrade(limits, state, data.size, data.supervised);
     if (!check.allowed) return { ok: false as const, blocked: true as const, reason: check.reason };
 
-    const cfg = readConfig();
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(supabase, userId);
     if (!cfg) {
       return {
         ok: false as const,
         blocked: false as const,
-        reason: "Broker credentials are not configured yet.",
+        reason: "Connect your TopstepX account in Settings before placing orders.",
       };
     }
 
     const inst = instrumentBySymbol(data.symbol);
-    const contractId = await resolveContractId(data.symbol);
+    const contractId = await resolveContractId(data.symbol, cfg);
     const weights: SignalWeights = {
       rsi: Number(settings?.weight_rsi ?? DEFAULT_WEIGHTS.rsi),
       vwap: Number(settings?.weight_vwap ?? DEFAULT_WEIGHTS.vwap),
@@ -202,7 +216,7 @@ export const submitOrder = createServerFn({ method: "POST" })
       // measure which readings actually preceded winners.
       let tradeId: string | null = null;
       try {
-        const barsResult = await fetchBars(data.symbol, data.timeframe as Timeframe, 300);
+        const barsResult = await fetchBars(data.symbol, data.timeframe as Timeframe, 300, cfg);
         const signal = computeSignal(barsResult.bars, data.timeframe as Timeframe, weights);
         const entryPrice = data.limitPrice ?? data.stopPrice ?? signal.lastPrice ?? null;
         const side = data.side === 0 ? "buy" : "sell";
@@ -291,8 +305,9 @@ export const submitOrder = createServerFn({ method: "POST" })
 export const flattenAll = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ accountId: z.number().int() }).parse(input))
-  .handler(async ({ data }) => {
-    const cfg = readConfig();
+  .handler(async ({ data, context }) => {
+    const { resolveConfig } = await import("./broker-credentials.server");
+    const cfg = await resolveConfig(context.supabase, context.userId);
     if (!cfg) return { ok: false as const, reason: "Broker credentials are not configured yet.", flattened: 0, cancelled: 0 };
 
     let flattened = 0;
