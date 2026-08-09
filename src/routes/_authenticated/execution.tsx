@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useBrokerVault } from "@/lib/broker-vault";
-import { searchAccounts, getPositions, placeOrder, flattenAll, fetchBars } from "@/lib/broker-client";
-import { logOrderEntry } from "@/lib/journal.functions";
+import { searchAccounts, searchPositions, placeOrder, flattenAll, fetchBars } from "@/lib/broker-client";
+import { logOrderEntry, getRiskState } from "@/lib/journal.functions";
 import { INSTRUMENTS } from "@/lib/market";
 import { ORDER_TYPE_LABELS, OrderSide, OrderType } from "@/lib/broker-enums";
 import { checkPreTrade, DEFAULT_LIMITS, type DailyState } from "@/lib/risk";
