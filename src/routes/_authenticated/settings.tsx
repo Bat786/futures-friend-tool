@@ -190,21 +190,7 @@ function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="panel">
-            <CardHeader>
-              <CardTitle className="font-display text-base">Broker connection</CardTitle>
-              <CardDescription>TopstepX / ProjectX gateway.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row label="Status" value={broker.data?.configured ? "Connected" : "Not configured"} />
-              <Row label="Environment" value={broker.data?.demo ? "Demo / evaluation" : "Live"} />
-              <Row label="Gateway" value={broker.data?.baseUrl ?? "—"} />
-              <p className="pt-2 text-xs text-muted-foreground">
-                Credentials are stored as server-side secrets and are never sent to the browser. Ask me to add them and
-                I'll open a secure form.
-              </p>
-            </CardContent>
-          </Card>
+          <BrokerConnectCard />
 
           <Card className="panel">
             <CardHeader>
