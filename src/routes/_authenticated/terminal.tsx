@@ -45,10 +45,11 @@ function TerminalPage() {
   const [symbol, setSymbol] = useState("MES");
   const [timeframe, setTimeframe] = useState<Timeframe>("5m");
   const inst = instrumentBySymbol(symbol);
+  const { config, status } = useBrokerVault();
 
   const query = useQuery({
-    queryKey: ["bars", symbol, timeframe],
-    queryFn: () => getBars({ data: { symbol, timeframe, count: 300 } }),
+    queryKey: ["bars", symbol, timeframe, config?.baseUrl ?? "sim"],
+    queryFn: () => fetchBars(symbol, timeframe, 300, config),
     refetchInterval: 30_000,
   });
 
