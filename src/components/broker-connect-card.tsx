@@ -68,7 +68,7 @@ export function BrokerConnectCard() {
         toast.error("Save credentials first");
         return;
       }
-      const res = await searchAccounts(cfg);
+      const res = await searchAccounts({ ...cfg, baseUrl: gatewayFor(cfg.environment) });
       const mapped = res.accounts.map(toAccountDTO);
       setAccounts(mapped);
       toast.success(`${mapped.length} account${mapped.length === 1 ? "" : "s"} found`);
