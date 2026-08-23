@@ -5,7 +5,7 @@ import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthLayout } from "@/components/auth/auth-layout";
-import { ResendConfirmation } from "@/components/auth/resend-confirmation";
+import { isAdminUser } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/auth-callback")({
   head: () => ({
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/auth-callback")({
 });
 
 const supportedConfirmationTypes = new Set<EmailOtpType>([
-  "signup",
   "invite",
   "magiclink",
   "email",
@@ -77,16 +76,20 @@ function AuthCallbackPage() {
     }
 
     let done = false;
-    const finish = () => {
+    const finish = async () => {
       if (done) return;
+      const { data } = await supabase.auth.getUser();
+      if (!isAdminUser(data.user)) {
+        done = true;
+        await supabase.auth.signOut();
+        setStatus("failed");
+        setMessage("Administrator access is required.");
+        return;
+      }
       done = true;
       setStatus("ok");
       setTimeout(() => navigate({ to: "/terminal", replace: true }), 900);
     };
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) finish();
-    });
 
     const completeConfirmation = async () => {
       if (tokenHash) {
@@ -102,12 +105,12 @@ function AuthCallbackPage() {
           setMessage(verifyError.message);
           return;
         }
-        finish();
+        await finish();
         return;
       }
 
       const { data } = await supabase.auth.getSession();
-      if (data.session) finish();
+      if (data.session) await finish();
     };
 
     void completeConfirmation();
@@ -121,7 +124,6 @@ function AuthCallbackPage() {
 
     return () => {
       clearTimeout(timer);
-      sub.subscription.unsubscribe();
     };
   }, [navigate]);
 
@@ -158,8 +160,7 @@ function AuthCallbackPage() {
               <CardDescription>{message}</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResendConfirmation />
-              <div className="mt-4 text-center text-xs text-muted-foreground">
+              <div className="text-center text-xs text-muted-foreground">
                 <Link to="/auth" className="underline underline-offset-4 hover:text-foreground">
                   Back to sign in
                 </Link>
