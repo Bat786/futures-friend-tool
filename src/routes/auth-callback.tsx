@@ -88,7 +88,7 @@ function AuthCallbackPage() {
       }
       done = true;
       setStatus("ok");
-      setTimeout(() => navigate({ to: "/terminal", replace: true }), 900);
+      setTimeout(() => navigate({ to: "/dashboard", replace: true }), 900);
     };
 
     const completeConfirmation = async () => {

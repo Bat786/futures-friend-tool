@@ -36,13 +36,13 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 const NAV = [
-  ["/dashboard", "Command Center", LayoutDashboard],
+  ["/dashboard", "Dashboard", LayoutDashboard],
   ["/create", "Create", Sparkles],
   ["/campaigns", "Campaigns", Megaphone],
   ["/brands", "Brands", Building2],
-  ["/tiktok-lab", "TikTok Ad Lab", Smartphone],
+  ["/tiktok-lab", "TikTok Lab", Smartphone],
   ["/script-studio", "Script Studio", ScrollText],
-  ["/storyboard", "Storyboards", Clapperboard],
+  ["/storyboard", "Storyboard", Clapperboard],
   ["/creative-studio", "Creative Studio", Palette],
   ["/website-lab", "Website Lab", GalleryVerticalEnd],
   ["/content", "Content", PenTool],

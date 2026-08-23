@@ -41,7 +41,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (isAdminUser(data.session?.user)) navigate({ to: "/terminal", replace: true });
+      if (isAdminUser(data.session?.user)) navigate({ to: "/dashboard", replace: true });
       else if (data.session) void supabase.auth.signOut();
     });
   }, [navigate]);
@@ -60,7 +60,7 @@ function AuthPage() {
       toast.error("Administrator access is required.");
       return;
     }
-    navigate({ to: "/terminal", replace: true });
+    navigate({ to: "/dashboard", replace: true });
   }
 
   async function forgotPassword() {
