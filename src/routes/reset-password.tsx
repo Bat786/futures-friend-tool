@@ -16,7 +16,7 @@ export const Route = createFileRoute("/reset-password")({
       { title: "Set a new password — AETHRON" },
       {
         name: "description",
-        content: "Choose a new password for your AETHRON futures terminal account.",
+        content: "Choose a new password for your AETHRON Ad Studio account.",
       },
       { property: "og:title", content: "Set a new password — AETHRON" },
       {
@@ -74,39 +74,41 @@ function ResetPasswordPage() {
   return (
     <AuthLayout>
       <Card className="panel">
-          <CardHeader>
-            <CardTitle className="font-display">Set a new password</CardTitle>
-            <CardDescription>
-              {ready && !hasSession
-                ? "This reset link is invalid or has expired. Request a new one from the sign-in page."
-                : "Choose a password you'll use to sign in to the terminal."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {ready && !hasSession ? (
-              <Button asChild className="w-full">
-                <Link to="/auth" search={{}}>Back to sign in</Link>
+        <CardHeader>
+          <CardTitle className="font-display">Set a new password</CardTitle>
+          <CardDescription>
+            {ready && !hasSession
+              ? "This reset link is invalid or has expired. Request a new one from the sign-in page."
+              : "Choose a password you'll use to sign in to the studio."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {ready && !hasSession ? (
+            <Button asChild className="w-full">
+              <Link to="/auth" search={{}}>
+                Back to sign in
+              </Link>
+            </Button>
+          ) : (
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={busy || !ready}>
+                {busy && <Loader2 className="size-4 animate-spin" />}
+                Update password
               </Button>
-            ) : (
-              <form onSubmit={submit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={busy || !ready}>
-                  {busy && <Loader2 className="size-4 animate-spin" />}
-                  Update password
-                </Button>
-              </form>
-            )}
-          </CardContent>
+            </form>
+          )}
+        </CardContent>
       </Card>
     </AuthLayout>
   );
