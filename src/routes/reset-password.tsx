@@ -85,7 +85,7 @@ function ResetPasswordPage() {
           <CardContent>
             {ready && !hasSession ? (
               <Button asChild className="w-full">
-                <Link to="/auth">Back to sign in</Link>
+                <Link to="/auth" search={{}}>Back to sign in</Link>
               </Button>
             ) : (
               <form onSubmit={submit} className="space-y-4">

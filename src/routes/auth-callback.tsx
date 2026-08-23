@@ -161,7 +161,7 @@ function AuthCallbackPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center text-xs text-muted-foreground">
-                <Link to="/auth" className="underline underline-offset-4 hover:text-foreground">
+                <Link to="/auth" search={{}} className="underline underline-offset-4 hover:text-foreground">
                   Back to sign in
                 </Link>
               </div>

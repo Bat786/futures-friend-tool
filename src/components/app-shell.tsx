@@ -122,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 size="sm"
                 onClick={async () => {
                   await signOut();
-                  router.navigate({ to: "/auth" });
+                  router.navigate({ to: "/auth", search: {} });
                 }}
               >
                 <LogOut className="size-3.5" />

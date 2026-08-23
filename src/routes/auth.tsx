@@ -29,7 +29,8 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   component: AuthPage,
-  validateSearch: (search: Record<string, unknown>) => ({ denied: search.denied === "1" }),
+  validateSearch: (search: Record<string, unknown>): { denied?: boolean } =>
+    search['denied'] === "1" || search['denied'] === true ? { denied: true } : {},
 });
 
 function AuthPage() {

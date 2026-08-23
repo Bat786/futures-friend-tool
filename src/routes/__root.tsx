@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrokerVaultProvider } from "@/lib/broker-vault";
 import {
   Outlet,
   Link,
@@ -132,9 +133,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster />
+      <BrokerVaultProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster />
+      </BrokerVaultProvider>
     </QueryClientProvider>
+
   );
 }

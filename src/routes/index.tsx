@@ -89,7 +89,7 @@ function LandingPage() {
             </span>
           </div>
           <Button asChild size="sm">
-            <Link to="/auth">Sign in</Link>
+            <Link to="/auth" search={{}}>Sign in</Link>
           </Button>
         </div>
       </header>
@@ -121,7 +121,7 @@ function LandingPage() {
 
             <div className="mt-9 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">
-                <Link to="/auth">
+                <Link to="/auth" search={{}}>
                   <TrendingUp className="size-4" />
                   Open the workspace
                 </Link>
