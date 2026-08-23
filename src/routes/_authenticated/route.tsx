@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { BrokerVaultProvider } from "@/lib/broker-vault";
 import { isAdminUser } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -18,9 +17,5 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  return (
-    <BrokerVaultProvider>
-      <Outlet />
-    </BrokerVaultProvider>
-  );
+  return <Outlet />;
 }
