@@ -2,6 +2,7 @@ export type Brand = {
   id: string;
   name: string;
   website: string;
+  logo: string;
   description: string;
   industry: string;
   products: string;
@@ -19,7 +20,12 @@ export type Brand = {
   pillars: string[];
 };
 export type CampaignStatus =
-  "Draft" | "In Progress" | "Needs Review" | "Approved" | "Published" | "Archived";
+  | "Draft"
+  | "In Progress"
+  | "Needs Review"
+  | "Approved"
+  | "Published"
+  | "Archived";
 export type Campaign = {
   id: string;
   brandId: string;
@@ -37,12 +43,59 @@ export type Campaign = {
   notes: string;
   status: CampaignStatus;
   updatedAt: string;
+  creativeIds?: string[];
+  dueDate?: string;
+};
+export type StoryboardScene = {
+  id: string;
+  beat: string;
+  visual: string;
+  text: string;
+  seconds: string;
+};
+export type CreativePack = {
+  id: string;
+  name: string;
+  brandId: string;
+  goal: string;
+  style: string;
+  format: string;
+  productTitle: string;
+  productUrl: string;
+  price: string;
+  offer: string;
+  cta: string;
+  description: string;
+  assetNames: string[];
+  hooks: string[];
+  primaryScript: string;
+  scriptVariants: string[];
+  shots: string[];
+  storyboard: StoryboardScene[];
+  onScreenText: string[];
+  caption: string;
+  ctaOptions: string[];
+  hashtags: string[];
+  headlines: string[];
+  variations: Array<{ name: string; hook: string; angle: string; cta: string }>;
+  status: "Draft" | "Approved";
+  createdAt: string;
+  updatedAt: string;
+};
+export type CalendarItem = {
+  id: string;
+  creativeId: string;
+  title: string;
+  date: string;
+  platform: string;
+  status: "Scheduled" | "Published";
 };
 export const starterBrands: Brand[] = [
   {
     id: "soliq",
     name: "SOLIQ",
     website: "",
+    logo: "",
     description: "Premium innovation brand profile ready for enrichment.",
     industry: "Technology",
     products: "",
@@ -63,6 +116,7 @@ export const starterBrands: Brand[] = [
     id: "whattaprice",
     name: "WhattAPrice",
     website: "",
+    logo: "",
     description: "Value-led commerce brand profile ready for enrichment.",
     industry: "Commerce",
     products: "",
@@ -132,17 +186,31 @@ export type StudioState = {
     actual: string;
   }>;
   briefs: Array<Record<string, string>>;
+  creatives: CreativePack[];
+  calendar: CalendarItem[];
+  savedStyles: string[];
 };
 export const initialState: StudioState = {
   brands: starterBrands,
   campaigns: [],
   referrals: [],
   briefs: [],
+  creatives: [],
+  calendar: [],
+  savedStyles: ["UGC", "Product Demo", "Direct Response"],
 };
 export function loadStudio(): StudioState {
   if (typeof window === "undefined") return initialState;
   try {
-    return { ...initialState, ...JSON.parse(localStorage.getItem(STORE) || "{}") };
+    const saved = JSON.parse(localStorage.getItem(STORE) || "{}");
+    return {
+      ...initialState,
+      ...saved,
+      brands: saved.brands?.length ? saved.brands : starterBrands,
+      creatives: saved.creatives || [],
+      calendar: saved.calendar || [],
+      savedStyles: saved.savedStyles || initialState.savedStyles,
+    };
   } catch {
     return initialState;
   }
@@ -169,6 +237,18 @@ export interface CreativeAIService {
     tests: string[];
   }>;
 }
+export interface ImageGenerationService {
+  generate(prompt: string): Promise<{ assetUrl: string }>;
+}
+export interface AnalyticsProvider {
+  report(campaignIds: string[], range: { from: string; to: string }): Promise<unknown>;
+}
+export interface ClientWorkspaceProvider {
+  provision(name: string): Promise<{ id: string }>;
+}
+export interface BillingProvider {
+  getUsage(): Promise<{ credits: number; plan: string }>;
+}
 export interface VideoGenerationService {
   generate(input: {
     duration: 5 | 10 | 15;
@@ -182,4 +262,13 @@ export interface AdPlatformProvider {
   createCampaign(input: Campaign): Promise<{ id: string }>;
   report(range: { from: string; to: string }): Promise<unknown>;
 }
-export const integrations = { website: false, ai: false, video: false, tiktok: false } as const;
+export const integrations = {
+  website: false,
+  ai: false,
+  image: false,
+  video: false,
+  tiktok: false,
+  analytics: false,
+  clients: false,
+  billing: false,
+} as const;

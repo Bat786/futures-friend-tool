@@ -40,17 +40,17 @@ const NAV = [
   ["/create", "Create", Sparkles],
   ["/campaigns", "Campaigns", Megaphone],
   ["/brands", "Brands", Building2],
+  ["/creative-studio", "Creative Studio", Palette],
   ["/tiktok-lab", "TikTok Lab", Smartphone],
   ["/script-studio", "Script Studio", ScrollText],
   ["/storyboard", "Storyboard", Clapperboard],
-  ["/creative-studio", "Creative Studio", Palette],
-  ["/website-lab", "Website Lab", GalleryVerticalEnd],
   ["/content", "Content", PenTool],
-  ["/agency", "Agency", BriefcaseBusiness],
-  ["/analytics", "Analytics", BarChart3],
   ["/library", "Library", FolderOpen],
   ["/ai-director", "AI Director", Bot],
   ["/settings", "Settings", Settings],
+  ["/website-lab", "Website Lab", GalleryVerticalEnd],
+  ["/agency", "Agency", BriefcaseBusiness],
+  ["/analytics", "Analytics", BarChart3],
 ] as const;
 function StudioSidebar() {
   const { state } = useSidebar();
