@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth-callback")({
       { title: "Confirming your account — AETHRON" },
       {
         name: "description",
-        content: "Finishing email confirmation for your AETHRON futures terminal account.",
+        content: "Finishing email confirmation for your AETHRON Ad Studio account.",
       },
       { property: "og:title", content: "Confirming your account — AETHRON" },
       {
@@ -99,7 +99,10 @@ function AuthCallbackPage() {
           return;
         }
 
-        const { error: verifyError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        });
         if (verifyError) {
           setStatus("failed");
           setMessage(verifyError.message);
@@ -146,7 +149,7 @@ function AuthCallbackPage() {
               <CheckCircle2 className="size-4" />
               Email confirmed
             </CardTitle>
-            <CardDescription>Taking you to the terminal…</CardDescription>
+            <CardDescription>Taking you to the studio…</CardDescription>
           </CardHeader>
         )}
 
@@ -161,7 +164,11 @@ function AuthCallbackPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center text-xs text-muted-foreground">
-                <Link to="/auth" search={{}} className="underline underline-offset-4 hover:text-foreground">
+                <Link
+                  to="/auth"
+                  search={{}}
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
                   Back to sign in
                 </Link>
               </div>
