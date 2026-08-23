@@ -13,16 +13,15 @@ import { isAdminEmail, isAdminUser } from "@/lib/admin-auth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — AETHRON futures terminal" },
+      { title: "Sign in — AETHRON Ad Studio" },
       {
         name: "description",
-        content:
-          "Sign in to AETHRON to view live futures signals, your trade journal and supervised execution controls.",
+        content: "Private administrator access to the AETHRON creative intelligence workspace.",
       },
-      { property: "og:title", content: "Sign in — AETHRON futures terminal" },
+      { property: "og:title", content: "Sign in — AETHRON Ad Studio" },
       {
         property: "og:description",
-        content: "Access your futures signal gauge, trade journal and risk controls.",
+        content: "Access the AETHRON creative intelligence workspace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,7 +29,7 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
   validateSearch: (search: Record<string, unknown>): { denied?: boolean } =>
-    search['denied'] === "1" || search['denied'] === true ? { denied: true } : {},
+    search["denied"] === "1" || search["denied"] === true ? { denied: true } : {},
 });
 
 function AuthPage() {
@@ -89,8 +88,8 @@ function AuthPage() {
     <AuthLayout>
       <Card className="panel">
         <CardHeader>
-          <CardTitle className="font-display text-xl">Trader access</CardTitle>
-          <CardDescription>Private administrator access for AETHRON operations.</CardDescription>
+          <CardTitle className="font-display text-xl">Studio access</CardTitle>
+          <CardDescription>Private administrator access to AETHRON Ad Studio.</CardDescription>
         </CardHeader>
         <CardContent>
           {denied && (
@@ -138,7 +137,7 @@ function AuthPage() {
 
       <p className="mt-5 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
         <ShieldCheck className="size-3.5 text-primary" />
-        Execution is supervised by design — this terminal never trades unattended.
+        Private creative intelligence workspace — administrator access only.
       </p>
       <p className="mt-2 text-center text-xs text-muted-foreground">
         <Link to="/" className="underline underline-offset-4 hover:text-foreground">
