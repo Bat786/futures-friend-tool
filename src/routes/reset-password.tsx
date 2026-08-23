@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { isAdminUser } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -39,13 +40,19 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+      if (isAdminUser(session?.user)) {
         setHasSession(true);
+        setReady(true);
+      } else if (session) {
+        void supabase.auth.signOut();
+        setHasSession(false);
         setReady(true);
       }
     });
     supabase.auth.getSession().then(({ data }) => {
-      setHasSession(Boolean(data.session));
+      const allowed = isAdminUser(data.session?.user);
+      setHasSession(allowed);
+      if (data.session && !allowed) void supabase.auth.signOut();
       setReady(true);
     });
     return () => sub.subscription.unsubscribe();
