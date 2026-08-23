@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { listTrades } from "@/lib/journal.functions";
 import { equityCurve, pnlByHourOfDay, pnlBySetup, summary } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { StudioPage } from "@/components/studio-page";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/analytics")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: AnalyticsPage,
+  component: () => <StudioPage module="analytics" />,
 });
 
 function AnalyticsPage() {

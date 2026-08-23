@@ -14,11 +14,21 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthCallbackRouteImport } from './routes/auth-callback'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAgencyRouteImport } from './routes/_authenticated/agency'
+import { Route as AuthenticatedAiDirectorRouteImport } from './routes/_authenticated/ai-director'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedBrandsRouteImport } from './routes/_authenticated/brands'
+import { Route as AuthenticatedCampaignsRouteImport } from './routes/_authenticated/campaigns'
+import { Route as AuthenticatedContentRouteImport } from './routes/_authenticated/content'
+import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
+import { Route as AuthenticatedCreativeStudioRouteImport } from './routes/_authenticated/creative-studio'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedExecutionRouteImport } from './routes/_authenticated/execution'
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTerminalRouteImport } from './routes/_authenticated/terminal'
+import { Route as AuthenticatedWebsiteLabRouteImport } from './routes/_authenticated/website-lab'
 import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 
 const IndexRoute = IndexRouteImport.update({
@@ -45,9 +55,50 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAgencyRoute = AuthenticatedAgencyRouteImport.update({
+  id: '/agency',
+  path: '/agency',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAiDirectorRoute = AuthenticatedAiDirectorRouteImport.update({
+  id: '/ai-director',
+  path: '/ai-director',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBrandsRoute = AuthenticatedBrandsRouteImport.update({
+  id: '/brands',
+  path: '/brands',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCampaignsRoute = AuthenticatedCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedContentRoute = AuthenticatedContentRouteImport.update({
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreateRoute = AuthenticatedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreativeStudioRoute =
+  AuthenticatedCreativeStudioRouteImport.update({
+    id: '/creative-studio',
+    path: '/creative-studio',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedExecutionRoute = AuthenticatedExecutionRouteImport.update({
@@ -60,6 +111,11 @@ const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
   path: '/journal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -68,6 +124,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
 const AuthenticatedTerminalRoute = AuthenticatedTerminalRouteImport.update({
   id: '/terminal',
   path: '/terminal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWebsiteLabRoute = AuthenticatedWebsiteLabRouteImport.update({
+  id: '/website-lab',
+  path: '/website-lab',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
@@ -81,11 +142,21 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/agency': typeof AuthenticatedAgencyRoute
+  '/ai-director': typeof AuthenticatedAiDirectorRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/brands': typeof AuthenticatedBrandsRoute
+  '/campaigns': typeof AuthenticatedCampaignsRoute
+  '/content': typeof AuthenticatedContentRoute
+  '/create': typeof AuthenticatedCreateRoute
+  '/creative-studio': typeof AuthenticatedCreativeStudioRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/execution': typeof AuthenticatedExecutionRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/terminal': typeof AuthenticatedTerminalRoute
+  '/website-lab': typeof AuthenticatedWebsiteLabRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRoutesByTo {
@@ -93,11 +164,21 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/agency': typeof AuthenticatedAgencyRoute
+  '/ai-director': typeof AuthenticatedAiDirectorRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/brands': typeof AuthenticatedBrandsRoute
+  '/campaigns': typeof AuthenticatedCampaignsRoute
+  '/content': typeof AuthenticatedContentRoute
+  '/create': typeof AuthenticatedCreateRoute
+  '/creative-studio': typeof AuthenticatedCreativeStudioRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/execution': typeof AuthenticatedExecutionRoute
   '/journal': typeof AuthenticatedJournalRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/terminal': typeof AuthenticatedTerminalRoute
+  '/website-lab': typeof AuthenticatedWebsiteLabRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRoutesById {
@@ -107,11 +188,21 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/auth-callback': typeof AuthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/agency': typeof AuthenticatedAgencyRoute
+  '/_authenticated/ai-director': typeof AuthenticatedAiDirectorRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/brands': typeof AuthenticatedBrandsRoute
+  '/_authenticated/campaigns': typeof AuthenticatedCampaignsRoute
+  '/_authenticated/content': typeof AuthenticatedContentRoute
+  '/_authenticated/create': typeof AuthenticatedCreateRoute
+  '/_authenticated/creative-studio': typeof AuthenticatedCreativeStudioRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/execution': typeof AuthenticatedExecutionRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/terminal': typeof AuthenticatedTerminalRoute
+  '/_authenticated/website-lab': typeof AuthenticatedWebsiteLabRoute
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRouteTypes {
@@ -121,11 +212,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/reset-password'
+    | '/agency'
+    | '/ai-director'
     | '/analytics'
+    | '/brands'
+    | '/campaigns'
+    | '/content'
+    | '/create'
+    | '/creative-studio'
+    | '/dashboard'
     | '/execution'
     | '/journal'
+    | '/library'
     | '/settings'
     | '/terminal'
+    | '/website-lab'
     | '/workspace'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -133,11 +234,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/reset-password'
+    | '/agency'
+    | '/ai-director'
     | '/analytics'
+    | '/brands'
+    | '/campaigns'
+    | '/content'
+    | '/create'
+    | '/creative-studio'
+    | '/dashboard'
     | '/execution'
     | '/journal'
+    | '/library'
     | '/settings'
     | '/terminal'
+    | '/website-lab'
     | '/workspace'
   id:
     | '__root__'
@@ -146,11 +257,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/auth-callback'
     | '/reset-password'
+    | '/_authenticated/agency'
+    | '/_authenticated/ai-director'
     | '/_authenticated/analytics'
+    | '/_authenticated/brands'
+    | '/_authenticated/campaigns'
+    | '/_authenticated/content'
+    | '/_authenticated/create'
+    | '/_authenticated/creative-studio'
+    | '/_authenticated/dashboard'
     | '/_authenticated/execution'
     | '/_authenticated/journal'
+    | '/_authenticated/library'
     | '/_authenticated/settings'
     | '/_authenticated/terminal'
+    | '/_authenticated/website-lab'
     | '/_authenticated/workspace'
   fileRoutesById: FileRoutesById
 }
@@ -199,11 +320,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/agency': {
+      id: '/_authenticated/agency'
+      path: '/agency'
+      fullPath: '/agency'
+      preLoaderRoute: typeof AuthenticatedAgencyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai-director': {
+      id: '/_authenticated/ai-director'
+      path: '/ai-director'
+      fullPath: '/ai-director'
+      preLoaderRoute: typeof AuthenticatedAiDirectorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/brands': {
+      id: '/_authenticated/brands'
+      path: '/brands'
+      fullPath: '/brands'
+      preLoaderRoute: typeof AuthenticatedBrandsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/campaigns': {
+      id: '/_authenticated/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof AuthenticatedCampaignsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/content': {
+      id: '/_authenticated/content'
+      path: '/content'
+      fullPath: '/content'
+      preLoaderRoute: typeof AuthenticatedContentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/create': {
+      id: '/_authenticated/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof AuthenticatedCreateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/creative-studio': {
+      id: '/_authenticated/creative-studio'
+      path: '/creative-studio'
+      fullPath: '/creative-studio'
+      preLoaderRoute: typeof AuthenticatedCreativeStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/execution': {
@@ -220,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJournalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -234,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTerminalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/website-lab': {
+      id: '/_authenticated/website-lab'
+      path: '/website-lab'
+      fullPath: '/website-lab'
+      preLoaderRoute: typeof AuthenticatedWebsiteLabRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/workspace': {
       id: '/_authenticated/workspace'
       path: '/workspace'
@@ -245,20 +436,40 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgencyRoute: typeof AuthenticatedAgencyRoute
+  AuthenticatedAiDirectorRoute: typeof AuthenticatedAiDirectorRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedBrandsRoute: typeof AuthenticatedBrandsRoute
+  AuthenticatedCampaignsRoute: typeof AuthenticatedCampaignsRoute
+  AuthenticatedContentRoute: typeof AuthenticatedContentRoute
+  AuthenticatedCreateRoute: typeof AuthenticatedCreateRoute
+  AuthenticatedCreativeStudioRoute: typeof AuthenticatedCreativeStudioRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExecutionRoute: typeof AuthenticatedExecutionRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTerminalRoute: typeof AuthenticatedTerminalRoute
+  AuthenticatedWebsiteLabRoute: typeof AuthenticatedWebsiteLabRoute
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgencyRoute: AuthenticatedAgencyRoute,
+  AuthenticatedAiDirectorRoute: AuthenticatedAiDirectorRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedBrandsRoute: AuthenticatedBrandsRoute,
+  AuthenticatedCampaignsRoute: AuthenticatedCampaignsRoute,
+  AuthenticatedContentRoute: AuthenticatedContentRoute,
+  AuthenticatedCreateRoute: AuthenticatedCreateRoute,
+  AuthenticatedCreativeStudioRoute: AuthenticatedCreativeStudioRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExecutionRoute: AuthenticatedExecutionRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTerminalRoute: AuthenticatedTerminalRoute,
+  AuthenticatedWebsiteLabRoute: AuthenticatedWebsiteLabRoute,
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
 }
 
@@ -275,3 +486,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { getRiskState, updateRiskSettings } from "@/lib/journal.functions";
 import { BrokerConnectCard } from "@/components/broker-connect-card";
+import { StudioPage } from "@/components/studio-page";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: SettingsPage,
+  component: () => <StudioPage module="settings" />,
 });
 
 function SettingsPage() {
