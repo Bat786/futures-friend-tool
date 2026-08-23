@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated")({
     if (error || !data.user) throw redirect({ to: "/auth" });
     if (!isAdminUser(data.user)) {
       await supabase.auth.signOut();
-      throw redirect({ to: "/auth", search: { denied: "1" } });
+      throw redirect({ to: "/auth", search: { denied: true } });
     }
     return { user: data.user };
   },
