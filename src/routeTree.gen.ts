@@ -27,6 +27,9 @@ import { Route as AuthenticatedExecutionRouteImport } from './routes/_authentica
 import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedScriptStudioRouteImport } from './routes/_authenticated/script-studio'
+import { Route as AuthenticatedStoryboardRouteImport } from './routes/_authenticated/storyboard'
+import { Route as AuthenticatedTiktokLabRouteImport } from './routes/_authenticated/tiktok-lab'
 import { Route as AuthenticatedTerminalRouteImport } from './routes/_authenticated/terminal'
 import { Route as AuthenticatedWebsiteLabRouteImport } from './routes/_authenticated/website-lab'
 import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
@@ -116,6 +119,21 @@ const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedScriptStudioRoute = AuthenticatedScriptStudioRouteImport.update({
+  id: '/script-studio',
+  path: '/script-studio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStoryboardRoute = AuthenticatedStoryboardRouteImport.update({
+  id: '/storyboard',
+  path: '/storyboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTiktokLabRoute = AuthenticatedTiktokLabRouteImport.update({
+  id: '/tiktok-lab',
+  path: '/tiktok-lab',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -154,6 +172,9 @@ export interface FileRoutesByFullPath {
   '/execution': typeof AuthenticatedExecutionRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/script-studio': typeof AuthenticatedScriptStudioRoute
+  '/storyboard': typeof AuthenticatedStoryboardRoute
+  '/tiktok-lab': typeof AuthenticatedTiktokLabRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/terminal': typeof AuthenticatedTerminalRoute
   '/website-lab': typeof AuthenticatedWebsiteLabRoute
@@ -176,6 +197,9 @@ export interface FileRoutesByTo {
   '/execution': typeof AuthenticatedExecutionRoute
   '/journal': typeof AuthenticatedJournalRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/script-studio': typeof AuthenticatedScriptStudioRoute
+  '/storyboard': typeof AuthenticatedStoryboardRoute
+  '/tiktok-lab': typeof AuthenticatedTiktokLabRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/terminal': typeof AuthenticatedTerminalRoute
   '/website-lab': typeof AuthenticatedWebsiteLabRoute
@@ -200,6 +224,9 @@ export interface FileRoutesById {
   '/_authenticated/execution': typeof AuthenticatedExecutionRoute
   '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
+  '/_authenticated/script-studio': typeof AuthenticatedScriptStudioRoute
+  '/_authenticated/storyboard': typeof AuthenticatedStoryboardRoute
+  '/_authenticated/tiktok-lab': typeof AuthenticatedTiktokLabRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/terminal': typeof AuthenticatedTerminalRoute
   '/_authenticated/website-lab': typeof AuthenticatedWebsiteLabRoute
@@ -224,6 +251,9 @@ export interface FileRouteTypes {
     | '/execution'
     | '/journal'
     | '/library'
+    | '/script-studio'
+    | '/storyboard'
+    | '/tiktok-lab'
     | '/settings'
     | '/terminal'
     | '/website-lab'
@@ -246,6 +276,9 @@ export interface FileRouteTypes {
     | '/execution'
     | '/journal'
     | '/library'
+    | '/script-studio'
+    | '/storyboard'
+    | '/tiktok-lab'
     | '/settings'
     | '/terminal'
     | '/website-lab'
@@ -269,6 +302,9 @@ export interface FileRouteTypes {
     | '/_authenticated/execution'
     | '/_authenticated/journal'
     | '/_authenticated/library'
+    | '/_authenticated/script-studio'
+    | '/_authenticated/storyboard'
+    | '/_authenticated/tiktok-lab'
     | '/_authenticated/settings'
     | '/_authenticated/terminal'
     | '/_authenticated/website-lab'
@@ -404,6 +440,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/script-studio': {
+      id: '/_authenticated/script-studio'
+      path: '/script-studio'
+      fullPath: '/script-studio'
+      preLoaderRoute: typeof AuthenticatedScriptStudioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/storyboard': {
+      id: '/_authenticated/storyboard'
+      path: '/storyboard'
+      fullPath: '/storyboard'
+      preLoaderRoute: typeof AuthenticatedStoryboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tiktok-lab': {
+      id: '/_authenticated/tiktok-lab'
+      path: '/tiktok-lab'
+      fullPath: '/tiktok-lab'
+      preLoaderRoute: typeof AuthenticatedTiktokLabRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -448,6 +505,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExecutionRoute: typeof AuthenticatedExecutionRoute
   AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+  AuthenticatedScriptStudioRoute: typeof AuthenticatedScriptStudioRoute
+  AuthenticatedStoryboardRoute: typeof AuthenticatedStoryboardRoute
+  AuthenticatedTiktokLabRoute: typeof AuthenticatedTiktokLabRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTerminalRoute: typeof AuthenticatedTerminalRoute
   AuthenticatedWebsiteLabRoute: typeof AuthenticatedWebsiteLabRoute
@@ -467,6 +527,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExecutionRoute: AuthenticatedExecutionRoute,
   AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+  AuthenticatedScriptStudioRoute: AuthenticatedScriptStudioRoute,
+  AuthenticatedStoryboardRoute: AuthenticatedStoryboardRoute,
+  AuthenticatedTiktokLabRoute: AuthenticatedTiktokLabRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTerminalRoute: AuthenticatedTerminalRoute,
   AuthenticatedWebsiteLabRoute: AuthenticatedWebsiteLabRoute,
