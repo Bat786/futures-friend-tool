@@ -308,7 +308,7 @@ function Brands({ state, setState }: any) {
               <label className="text-xs text-muted-foreground" key={k}>
                 {l}
                 <Input
-                  value={(selected as any)[k]}
+                  value={(selected as any)[k as string]}
                   onChange={(e) => update(k as keyof Brand, e.target.value)}
                   className="mt-1 text-foreground"
                 />
@@ -336,9 +336,9 @@ function Campaigns({ state, setState }: any) {
     brandId: state.brands[0]?.id || "",
     product: "",
     offer: "",
-    objective: campaignObjectives[0],
+    objective: campaignObjectives[0]!,
     audience: "",
-    platform: platforms[0],
+    platform: platforms[0]!,
     funnel: "Awareness",
     tone: "",
     cta: "",

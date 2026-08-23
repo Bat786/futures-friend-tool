@@ -123,7 +123,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
                 size="icon"
                 onClick={async () => {
                   await signOut();
-                  router.navigate({ to: "/auth" });
+                  router.navigate({ to: "/auth", search: {} });
                 }}
               >
                 <LogOut className="size-4" />

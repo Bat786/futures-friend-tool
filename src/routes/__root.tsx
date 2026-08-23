@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrokerVaultProvider } from "@/lib/broker-vault";
 import {
   Outlet,
   Link,
