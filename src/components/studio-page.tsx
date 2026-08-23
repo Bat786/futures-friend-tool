@@ -15,6 +15,8 @@ import {
   Upload,
 } from "lucide-react";
 import { StudioShell } from "@/components/studio-shell";
+import { CreateAdWorkflow } from "@/components/create-ad-workflow";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,9 +98,11 @@ function Module({ name }: { name: string }) {
           title="Agency command center"
           copy="Every brand, campaign and creative workflow in one private operating surface."
           action={
-            <Button>
-              <Sparkles />
-              Quick create
+            <Button asChild>
+              <Link to="/create">
+                <Sparkles />
+                Create New Ad
+              </Link>
             </Button>
           }
         />
@@ -109,7 +113,7 @@ function Module({ name }: { name: string }) {
               state.campaigns.filter((c) => !["Archived", "Published"].includes(c.status)).length,
             ],
             ["Brands", state.brands.length],
-            ["Draft creatives", 0],
+            ["Draft creatives", state.creatives.filter((c) => c.status === "Draft").length],
             ["Approved", state.campaigns.filter((c) => c.status === "Approved").length],
           ].map(([a, b]) => (
             <Box key={a} title={String(a)}>
@@ -162,8 +166,8 @@ function Module({ name }: { name: string }) {
       </>
     );
   if (name === "brands") return <Brands state={state} setState={setState} />;
-  if (name === "campaigns" || name === "create")
-    return <Campaigns state={state} setState={setState} />;
+  if (name === "create") return <CreateAdWorkflow state={state} setState={setState} />;
+  if (name === "campaigns") return <Campaigns state={state} setState={setState} />;
   if (name === "creative-studio") return <CreativeStudio />;
   if (name === "website-lab") return <WebsiteLab />;
   if (name === "content") return <Content />;
@@ -292,6 +296,7 @@ function Brands({ state, setState }: any) {
             {[
               ["name", "Brand name"],
               ["website", "Website"],
+              ["logo", "Logo URL / asset reference"],
               ["industry", "Industry"],
               ["products", "Products / services"],
               ["audience", "Target customers"],
@@ -308,7 +313,7 @@ function Brands({ state, setState }: any) {
               <label className="text-xs text-muted-foreground" key={k}>
                 {l}
                 <Input
-                  value={(selected as any)[k as string]}
+                  value={(selected as any)[k as string] ?? ""}
                   onChange={(e) => update(k as keyof Brand, e.target.value)}
                   className="mt-1 text-foreground"
                 />
@@ -318,6 +323,23 @@ function Brands({ state, setState }: any) {
           <div className="mt-4 flex flex-wrap gap-2">
             {selected.pillars.map((p) => (
               <Badge key={p}>{p}</Badge>
+            ))}
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">Brand colors</span>
+            {selected.colors.map((color, index) => (
+              <input
+                key={index}
+                aria-label={`Brand color ${index + 1}`}
+                type="color"
+                value={color}
+                onChange={(e) => {
+                  const colors = [...selected.colors] as Brand["colors"];
+                  colors[index] = e.target.value;
+                  update("colors", colors);
+                }}
+                className="size-9 cursor-pointer rounded-lg border bg-transparent p-1"
+              />
             ))}
           </div>
           <Button className="mt-4" onClick={save}>
@@ -658,54 +680,108 @@ function WebsiteLab() {
 }
 
 function Content() {
+  const { state, setState } = useStudio();
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [creativeId, setCreativeId] = useState(state.creatives[0]?.id || "");
+  const schedule = () => {
+    const creative = state.creatives.find((x) => x.id === creativeId);
+    if (!creative) return;
+    setState({
+      ...state,
+      calendar: [
+        {
+          id: crypto.randomUUID(),
+          creativeId,
+          title: creative.name,
+          date,
+          platform: creative.format,
+          status: "Scheduled",
+        },
+        ...state.calendar,
+      ],
+    });
+  };
   return (
     <>
       <Header
-        eyebrow="Social content machine"
-        title="Content engine"
-        copy="Plan posts, captions, scripts and publishing states across every major channel."
-        action={
-          <Button>
-            <Plus />
-            New content
-          </Button>
-        }
+        eyebrow="Local content queue"
+        title="Content calendar"
+        copy="Schedule generated creative packs on this device, then move them through publishing status."
       />
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.6fr]">
-        <Box title="Content pillars">
-          <div className="space-y-2">
-            {["Educate", "Inspire", "Demonstrate", "Convert"].map((x) => (
-              <div className="rounded-lg border p-3" key={x}>
-                {x}
-              </div>
-            ))}
-          </div>
+      <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
+        <Box title="Schedule creative">
+          <label className="text-xs">
+            Saved creative
+            <select
+              className="mt-1 w-full rounded-md border bg-background p-2"
+              value={creativeId}
+              onChange={(e) => setCreativeId(e.target.value)}
+            >
+              <option value="">Select a creative</option>
+              {state.creatives.map((x) => (
+                <option value={x.id} key={x.id}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="mt-3 block text-xs">
+            Publish date
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="mt-1"
+            />
+          </label>
+          <Button className="mt-4 w-full" disabled={!creativeId} onClick={schedule}>
+            <Plus /> Add to queue
+          </Button>
         </Box>
-        <Box title="Calendar">
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: 28 }, (_, i) => (
-              <div
-                className="min-h-20 rounded border p-2 text-[10px] text-muted-foreground"
-                key={i}
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
+        <Box title="Scheduled queue">
+          {state.calendar.length ? (
+            <div className="space-y-2">
+              {state.calendar
+                .sort((a, b) => a.date.localeCompare(b.date))
+                .map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 rounded-xl border p-3">
+                    <div className="grid size-12 place-items-center rounded-lg bg-primary/15 font-mono text-xs text-primary">
+                      {item.date.slice(5)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <b className="block truncate text-sm">{item.title}</b>
+                      <span className="text-xs text-muted-foreground">{item.platform}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={item.status === "Published" ? "outline" : "default"}
+                      onClick={() =>
+                        setState({
+                          ...state,
+                          calendar: state.calendar.map((x) =>
+                            x.id === item.id
+                              ? {
+                                  ...x,
+                                  status: x.status === "Scheduled" ? "Published" : "Scheduled",
+                                }
+                              : x,
+                          ),
+                        })
+                      }
+                    >
+                      {item.status}
+                    </Button>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <Empty
+              title="Queue is open"
+              copy="Generate and save a creative pack, then schedule it here."
+            />
+          )}
         </Box>
       </div>
-      <Box title="Production queue" className="mt-4">
-        <div className="grid gap-3 sm:grid-cols-4">
-          {["Draft", "Ready", "Scheduled", "Published"].map((x) => (
-            <div key={x}>
-              <Badge variant="outline">{x}</Badge>
-              <div className="mt-2 min-h-28 rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-                Drop content here
-              </div>
-            </div>
-          ))}
-        </div>
-      </Box>
     </>
   );
 }
